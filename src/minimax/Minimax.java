@@ -47,7 +47,6 @@ public class Minimax {
 	
 	private Map<String, Integer> minimaxSearch(char[] boardMinMAx, char player, int depth) {
 		counter++;
-		//count += 1;
 		ArrayList<Integer> availSquares = evaluateBoard(boardMinMAx, player);
 		// If end of depth, see who has the best score.
 		//System.out.println(availSquares);
@@ -63,9 +62,7 @@ public class Minimax {
 	 		bestScore.put("score", -1000);
 			// loop through available squares.
 			for (int i = 0; i < availSquares.size(); i++) {
-				// assign player to the current square.
-				//boardMinMAx[availSquares.get(i)] = player;
-				//System.out.println(boardMinMAx);
+				// Update board state to reflect this chosen move.
 				logic.setPosition(availSquares.get(i));
 				logic.setPlayers(currentPlayer, nextPlayer);
 				logic.setBoard(boardMinMAx);
@@ -79,11 +76,7 @@ public class Minimax {
 					bestScore.put("score", result.get("score"));
 					bestScore.put("index", availSquares.get(i));
 				}
-				// Reset current square to null 
-				// -> next iteration needs to see state of board prior to that potential move
-				//boardMinMAx[availSquares.get(i)] = '-';
 			}
-			// console.log(bestScore);
 			return bestScore;
 		} else {
 			Map<String, Integer> bestScore = new HashMap<>();
@@ -101,9 +94,7 @@ public class Minimax {
 					bestScore.put("score", result.get("score"));
 					bestScore.put("index", availSquares.get(i));
 				}
-				//boardMinMAx[availSquares.get(i)] = '-';
 			}
-			// console.log(bestScore);
 			return bestScore;
 		}
 	}
@@ -113,7 +104,7 @@ public class Minimax {
 		// Compare player's squares against weighted board.
 		for (int i = 0; i < weightedBoard.length; i++) {
 			if (boardMinMAx[i] == player) {
-				if (player == 'w') {
+				if (player == currentPlayer) {
 					score += weightedBoard[i];
 				} else {
 					score -= weightedBoard[i];
@@ -121,7 +112,7 @@ public class Minimax {
 			}
 		}
 		// Test for mobility.
-		if (player == 'w') {
+		if (player == currentPlayer) {
 			score += availableSquaresNum;
 		} else {
 			// Should these be + or - ???

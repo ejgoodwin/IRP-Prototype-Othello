@@ -14,18 +14,42 @@
 	border-radius: 0;
 }
 
-.button-start {
+.button-start,
+.button-reset {
 	-fx-background-radius: 5px;
 	border-radius: 5px;
+}
+
+.button-reset {
+	-fx-background-color: #712e1e;
+	background-color: #712e1e;
+	-fx-text-fill: #ffffff;
+	color: #ffffff;
+	-fx-border-color: none;
+	border-color: none;
+}
+
+.button-reset:hover {
+	-fx-background-color: #5e2d1f;
+	background-color: #5e2d1f;
 }
 
 #backButton,
 #forwardButton,
 .button-start {
-	-fx-background-color: #97d3ae;
-	background-color: #399E41;
+	-fx-background-color: #0f3b75;
+	background-color: #0f3b75;
+	-fx-text-fill: #ffffff;
+	color: #ffffff;
 	-fx-border-color: none;
 	border-color: none;
+}
+
+#backButton:hover,
+#forwardButton:hover,
+.button-start:hover {
+	-fx-background-color: #1b2e5a;
+	background-color: #1b2e5a;
 }
 
 #backButton {
@@ -37,3 +61,4 @@
 	-fx-background-radius: 0 5px 5px 0;
 	border-radius: 0 5px 5px 0;
 }
+

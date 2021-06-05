@@ -10,7 +10,10 @@ public class AlphaBeta {
 	
 	GameLogic logic = new GameLogic();
 	char[] board;
+	char currentPlayer;
+	char nextPlayer;
 	int counter = 0;
+	int level;
 	
 	int[] weightedBoard = {
 		99,-8,20,15,15,20,-8,99,
@@ -27,9 +30,15 @@ public class AlphaBeta {
 		board = boardIn;
 	}
 	
-	public int runMinimax() {
+	public void setPlayers(char currentPlayerIn, char nextPlayerIn) {
+		currentPlayer = currentPlayerIn;
+		nextPlayer = nextPlayerIn;
+	}
+	
+	public int runMinimax(int levelIn) {
 		counter = 0;
-		Map<String, Integer> minimaxMap = alphaBeta(board, 'w', 0, -1000000, 1000000);
+		level = levelIn;
+		Map<String, Integer> minimaxMap = alphaBeta(board, currentPlayer, 0, -1000000, 1000000);
 		int chosenPosition = minimaxMap.get("index"); 
 		System.out.println("Counter " + counter);
 		return chosenPosition;
@@ -41,14 +50,14 @@ public class AlphaBeta {
 		ArrayList<Integer> availSquares = evaluateBoard(boardMinMAx, player);
 		// If end of depth, see who has the best score.
 		//System.out.println(availSquares);
-		if (depth == 6 || availSquares.size() < 1) {
+		if (depth == level || availSquares.size() < 1) {
 			int score = boardValue(player, boardMinMAx, availSquares.size());
 			Map<String, Integer> scoreReturn = new HashMap<>();
 			scoreReturn.put("score", score);
 			return scoreReturn;
 		}
 		// Start min/max
-		if (player == 'w') {
+		if (player == currentPlayer) {
 	 		Map<String, Integer> bestScore = new HashMap<>();
 	 		bestScore.put("score", -1000);
 			// loop through available squares.
@@ -57,13 +66,13 @@ public class AlphaBeta {
 				//boardMinMAx[availSquares.get(i)] = player;
 				//System.out.println(boardMinMAx);
 				logic.setPosition(availSquares.get(i));
-				logic.setPlayers('w', 'b');
+				logic.setPlayers(currentPlayer, nextPlayer);
 				logic.setBoard(boardMinMAx);
 				logic.checkNextItem(boardMinMAx);
 				char[] newBoard = logic.getNewBoard();
 				//System.out.println(newBoard);
 				// store result of minimax
-				Map<String, Integer> result = alphaBeta(newBoard, 'b', depth+1, alpha, beta);
+				Map<String, Integer> result = alphaBeta(newBoard, nextPlayer, depth+1, alpha, beta);
 				// Find the MAXIMUM score
 				if (result.get("score").doubleValue() > bestScore.get("score").doubleValue()) {	
 					bestScore.put("score", result.get("score"));
@@ -86,11 +95,11 @@ public class AlphaBeta {
 			for (int i = 0; i < availSquares.size(); i++) {
 				//boardMinMAx[availSquares.get(i)] = player;
 				logic.setPosition(availSquares.get(i));
-				logic.setPlayers('b', 'w');
+				logic.setPlayers(nextPlayer, currentPlayer);
 				logic.setBoard(boardMinMAx);
 				logic.checkNextItem(boardMinMAx);
 				char[] newBoard = logic.getNewBoard();
-				Map<String, Integer> result = alphaBeta(newBoard, 'w', depth+1, alpha, beta);
+				Map<String, Integer> result = alphaBeta(newBoard, currentPlayer, depth+1, alpha, beta);
 				// Find the MINIMUM score
 				if (result.get("score").doubleValue() < bestScore.get("score").doubleValue()) {
 					bestScore.put("score", result.get("score"));
@@ -113,7 +122,7 @@ public class AlphaBeta {
 		// Compare player's squares against weighted board.
 		for (int i = 0; i < weightedBoard.length; i++) {
 			if (boardMinMAx[i] == player) {
-				if (player == 'w') {
+				if (player == currentPlayer) {
 					score += weightedBoard[i];
 				} else {
 					score -= weightedBoard[i];
@@ -121,7 +130,7 @@ public class AlphaBeta {
 			}
 		}
 		// Test for mobility.
-		if (player == 'w') {
+		if (player == currentPlayer) {
 			score += availableSquaresNum;
 		} else {
 			// Should these be + or - ???

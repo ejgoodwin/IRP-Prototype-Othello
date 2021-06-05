@@ -21,7 +21,8 @@ import minimax.Minimax;
 public class Board extends Application {
 	
 	// Boards: current, previous and next.
-	char[] board = {
+	// A starter board is kept ready to be assigned to `board` when the game is reset.
+	char[] boardStarter = {
 		'-','-','-','-','-','-','-','-',
 		'-','-','-','-','-','-','-','-',
 		'-','-','-','-','-','-','-','-',
@@ -31,6 +32,7 @@ public class Board extends Application {
 		'-','-','-','-','-','-','-','-',
 		'-','-','-','-','-','-','-','-',
 	};
+	char[] board = boardStarter.clone();
 	char[] prevBoard = new char[64];
 	char[] nextBoard = new char[64];
 	
@@ -64,7 +66,11 @@ public class Board extends Application {
 	
 	// Difficulty level data.
 	int controlLevel = 2;
-	int variableLevel = 4;
+	int variableLevel = 3;
+	
+	// Choice of algorithm.
+	// Choices: "minimax", "alpha-beta", "mcts".
+	String algorithmChoice = "alpha-beta";
 	
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -163,7 +169,7 @@ public class Board extends Application {
 			
 			// Start button runs AI move.
 			Button startButton = new Button("AI move"); 
-			startButton.setOnAction(e -> handleStartClick());
+			startButton.setOnAction(e -> runAISearch());
 			startButton.getStyleClass().add("button-start");
 			HBox startButtonsHBox = new HBox();
 			startButtonsHBox.setPadding(new Insets(10,0,10,0));
@@ -182,8 +188,19 @@ public class Board extends Application {
 			GridPane.setConstraints(resultsTextHBox, 0, 12);
 			GridPane.setColumnSpan(resultsTextHBox, 8);
 			
+			// Reset button.
+			Button resetButton = new Button("Reset game"); 
+			resetButton.setOnAction(e -> handleResetGame());
+			resetButton.getStyleClass().add("button-reset");
+			HBox resetButtonsHBox = new HBox();
+			resetButtonsHBox.setPadding(new Insets(10,0,10,0));
+			resetButtonsHBox.setAlignment(Pos.CENTER);
+			resetButtonsHBox.getChildren().addAll(resetButton);
+			GridPane.setConstraints(resetButtonsHBox, 0, 13);
+			GridPane.setColumnSpan(resetButtonsHBox, 8);
+			
 			// Add items to the gridPane
-			gridPane.getChildren().addAll(titleHBox, currentPlayerHBox, historyButtonsHBox, startButtonsHBox, resultsTextHBox);
+			gridPane.getChildren().addAll(titleHBox, currentPlayerHBox, historyButtonsHBox, startButtonsHBox, resultsTextHBox, resetButtonsHBox);
 
 			Group root = new Group(gridPane);
 			Scene scene = new Scene(root,520,700);
@@ -196,8 +213,15 @@ public class Board extends Application {
 		}
 	}
 	
-	private void handleStartClick() {
-		runAISearch();
+	private void handleResetGame() {
+		board = boardStarter;
+		prevBoard = boardStarter;
+		prevPosition = 0;
+		currentPlayer = 'b';
+		nextPlayer = 'w';
+		Text resultsText = (Text) gridPane.lookup("#resultsText");
+		resultsText.setText("");
+		updateBoard();
 	}
 	
 	// Create array of available moves.
@@ -272,16 +296,13 @@ public class Board extends Application {
 				if (availableSquares.size() == 0) {
 					checkWinner();
 				}
-				runAISearch();
+				//runAISearch();
 			}
 		}
 	}
 	
 	private void runAISearch() {
-		// Minimax
 		char[] boardEvalClone = board.clone();
-		minimaxSearch.setBoard(board.clone());
-		minimaxSearch.setPlayers(currentPlayer, nextPlayer);
 		//ab.setBoard(board.clone());
 		int level;
 		if (currentPlayer == 'b') {
@@ -290,7 +311,20 @@ public class Board extends Application {
 			level = variableLevel;
 			//System.out.println(level);
 		}
-		int positionAI = minimaxSearch.runMinimax(level);
+		// Run correct algorithm.
+		int positionAI = -1;
+		if (algorithmChoice == "minimax") {
+			minimaxSearch.setBoard(board.clone());
+			minimaxSearch.setPlayers(currentPlayer, nextPlayer);
+			positionAI = minimaxSearch.runMinimax(level);
+		} else if (algorithmChoice == "alpha-beta") {
+			alphaBeta.setBoard(board.clone());
+			alphaBeta.setPlayers(currentPlayer, nextPlayer);
+			positionAI = alphaBeta.runMinimax(level);
+		} else if (algorithmChoice == "mcts") {
+			positionAI = mcts.findNextMove(boardEvalClone, currentPlayer);
+		}
+		
 		//System.out.println(positionAI);
 		//int positionAI = ab.runMinimax();
 		//System.out.println(positionAI);
@@ -380,10 +414,13 @@ public class Board extends Application {
 	}
 	
 	public static void main(String[] args) {
-		
+
 		// Launch JavaFX UI.
 		launch(args);
 
 	}
 
 }
+
+// TODO: scenario - one player flips all of opponent's discs without finishing game. 
+// Switch players on MCTS.
