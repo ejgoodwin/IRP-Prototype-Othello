@@ -1,3 +1,10 @@
+* {
+	-fx-font-size: 16px;
+	font-size: 16px;
+	-fx-font-family: Arial;
+	font-family: Arial;
+}
+
 .button {
 	-fx-background-color: #399E41;
 	background-color: #399E41;
@@ -5,4 +12,28 @@
 	border-color: #000000;
 	-fx-background-radius: 0;
 	border-radius: 0;
+}
+
+.button-start {
+	-fx-background-radius: 5px;
+	border-radius: 5px;
+}
+
+#backButton,
+#forwardButton,
+.button-start {
+	-fx-background-color: #97d3ae;
+	background-color: #399E41;
+	-fx-border-color: none;
+	border-color: none;
+}
+
+#backButton {
+	-fx-background-radius: 5px 0 0 5px;
+	border-radius: 5px 0 0 5px;
+}
+
+#forwardButton {
+	-fx-background-radius: 0 5px 5px 0;
+	border-radius: 0 5px 5px 0;
 }

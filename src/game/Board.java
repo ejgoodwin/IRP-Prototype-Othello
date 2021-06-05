@@ -1,6 +1,7 @@
+package game;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -13,6 +14,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import mcts.MCTS;
+import minimax.AlphaBeta;
+import minimax.Minimax;
 
 public class Board extends Application {
 	
@@ -31,18 +35,20 @@ public class Board extends Application {
 	char[] nextBoard = new char[64];
 	
 	// Information for board state.
-	int position;
 	char currentPlayer = 'b';
 	char nextPlayer = 'w';
 	boolean boardLocked = false;
+	int position;
+	// Used with history functionality.
+	int prevPosition;
 	
 	// Make GridPane available outside the `start` function be able to select board squares when updating UI.
 	GridPane gridPane;
 	
-	// Logic -> rules of the game. Used to check available moves and make a move.
+	// Logic contains rules of the game. Used to check available moves and make a move.
 	GameLogic logic = new GameLogic();
 	
-	// Holds list of available squares. Used to check if players can move or they need to pass.
+	// Holds list of available squares. Used to check if players can move or if they need to pass.
 	ArrayList<Integer> availableSquares = new ArrayList<Integer>();
 	
 	// Hold results when game terminates.
@@ -53,6 +59,8 @@ public class Board extends Application {
 	
 	// AI Search.
 	Minimax minimaxSearch = new Minimax();
+	AlphaBeta alphaBeta = new AlphaBeta();
+	MCTS mcts = new MCTS();
 	
 	// Difficulty level data.
 	int controlLevel = 2;
@@ -87,13 +95,13 @@ public class Board extends Application {
 			for (int i = 0; i < board.length; i++) {
 				Button boardButton;
 				if (board[i] == 'b') {
-					Image imageOk = new Image(getClass().getResourceAsStream("othello-disc-black.png"));
+					Image imageOk = new Image(getClass().getResourceAsStream("../othello-disc-black.png"));
 					boardButton = new Button("", new ImageView(imageOk));
 				} else if (board[i] == 'w') {
-					Image imageOk = new Image(getClass().getResourceAsStream("othello-disc-white.png"));
+					Image imageOk = new Image(getClass().getResourceAsStream("../othello-disc-white.png"));
 					boardButton = new Button("", new ImageView(imageOk));
 				} else if (board[i] == 'a') {
-					Image imageAvailableSquare = new Image(getClass().getResourceAsStream("available-square.png"));
+					Image imageAvailableSquare = new Image(getClass().getResourceAsStream("../available-square.png"));
 					boardButton = new Button("", new ImageView(imageAvailableSquare));
 				} else {
 					boardButton = new Button();
@@ -111,13 +119,7 @@ public class Board extends Application {
 				
 				// Store position in variable and use it in lambda function.
 				int boardPos = i;
-				//boardButton.setOnAction(e -> handleSquareClick(boardPos));
-				
-				boardButton.setOnAction(e -> {
-					handleSquareClick(boardPos);
-					updateBoard();
-					runAISearch();
-				});
+				boardButton.setOnAction(e -> handleSquareClick(boardPos));
 
 				// Add to pane
 				GridPane.setConstraints(boardButton, colCounter, rowCounter);
@@ -147,11 +149,11 @@ public class Board extends Application {
 			// History buttons
 			Button backButton = new Button("Back"); 
 			backButton.setId("backButton");
-			//backButton.setOnAction(e -> handleBackClick());
+			backButton.setOnAction(e -> handleBackClick());
 			Button forwardButton = new Button("Forward");
 			forwardButton.setId("forwardButton");
 			forwardButton.setDisable(true);
-			//forwardButton.setOnAction(e -> handleForwardClick());
+			forwardButton.setOnAction(e -> handleForwardClick());
 			HBox historyButtonsHBox = new HBox();
 			historyButtonsHBox.setPadding(new Insets(10,0,10,0));
 			historyButtonsHBox.setAlignment(Pos.CENTER);
@@ -159,8 +161,10 @@ public class Board extends Application {
 			GridPane.setConstraints(historyButtonsHBox, 0, 10);
 			GridPane.setColumnSpan(historyButtonsHBox, 8);
 			
+			// Start button runs AI move.
 			Button startButton = new Button("AI move"); 
 			startButton.setOnAction(e -> handleStartClick());
+			startButton.getStyleClass().add("button-start");
 			HBox startButtonsHBox = new HBox();
 			startButtonsHBox.setPadding(new Insets(10,0,10,0));
 			startButtonsHBox.setAlignment(Pos.CENTER);
@@ -168,12 +172,22 @@ public class Board extends Application {
 			GridPane.setConstraints(startButtonsHBox, 0, 11);
 			GridPane.setColumnSpan(startButtonsHBox, 8);
 			
+			// Results.
+			Text resultsText = new Text(); 
+			HBox resultsTextHBox = new HBox();
+			resultsTextHBox.setPadding(new Insets(10,0,10,0));
+			resultsTextHBox.setAlignment(Pos.CENTER);
+			resultsTextHBox.getChildren().addAll(resultsText);
+			resultsText.setId("resultsText");
+			GridPane.setConstraints(resultsTextHBox, 0, 12);
+			GridPane.setColumnSpan(resultsTextHBox, 8);
+			
 			// Add items to the gridPane
-			gridPane.getChildren().addAll(titleHBox, currentPlayerHBox, historyButtonsHBox, startButtonsHBox);
+			gridPane.getChildren().addAll(titleHBox, currentPlayerHBox, historyButtonsHBox, startButtonsHBox, resultsTextHBox);
 
 			Group root = new Group(gridPane);
 			Scene scene = new Scene(root,520,700);
-			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+			scene.getStylesheets().add(getClass().getResource("../application.css").toExternalForm());
 			stage.setScene(scene);
 			stage.show();
 			
@@ -209,7 +223,41 @@ public class Board extends Application {
 		}
 	}
 	
+	private void updateState() {
+		updatePlayers();
+		updatePlayerText();
+		resetAvailableMoves();
+		checkAvailableMoves();
+		updateBoard();
+	}
+	
+	private void handleForwardClick() {
+		board = nextBoard;
+		boardLocked = false;
+		updateState();
+		
+		Button backButton = (Button) gridPane.lookup("#backButton");
+		backButton.setDisable(false);
+		
+		Button forwardButton = (Button) gridPane.lookup("#forwardButton");
+		forwardButton.setDisable(true);
+	}
+
+	private void handleBackClick() {
+		nextBoard = board;
+		board = prevBoard;
+		boardLocked = true;
+		updateState();
+		
+		Button backButton = (Button) gridPane.lookup("#backButton");
+		backButton.setDisable(true);
+		
+		Button forwardButton = (Button) gridPane.lookup("#forwardButton");
+		forwardButton.setDisable(false);
+	}
+	
 	private void handleSquareClick(int positionIn) {
+		System.out.println(boardLocked);
 		 if (board[positionIn] == 'a' && boardLocked == false) {
 			char[] boardEvalClone = board.clone();
 			logic.setPlayers(currentPlayer, nextPlayer);
@@ -219,13 +267,12 @@ public class Board extends Application {
 			if (successfulMove) {
 				prevBoard = board;
 				board = logic.getNewBoard();
-				updatePlayers();
-				updatePlayerText();
-				resetAvailableMoves();
-				checkAvailableMoves();
+				prevPosition = positionIn;
+				updateState();
 				if (availableSquares.size() == 0) {
 					checkWinner();
 				}
+				runAISearch();
 			}
 		}
 	}
@@ -241,10 +288,10 @@ public class Board extends Application {
 			level = controlLevel;
 		} else {
 			level = variableLevel;
-			System.out.println(level);
+			//System.out.println(level);
 		}
 		int positionAI = minimaxSearch.runMinimax(level);
-		System.out.println(positionAI);
+		//System.out.println(positionAI);
 		//int positionAI = ab.runMinimax();
 		//System.out.println(positionAI);
 		logic.setPlayers(currentPlayer, nextPlayer);
@@ -253,28 +300,31 @@ public class Board extends Application {
 		logic.checkNextItem(boardEvalClone);
 		prevBoard = board;
 		board = logic.getNewBoard();
-		updatePlayers();
-		updatePlayerText();
-		resetAvailableMoves();
-		checkAvailableMoves();
+		prevPosition = positionAI;
+		updateState();
 		if (availableSquares.size() == 0) {
 			checkWinner();
 		}
-		updateBoard();
 	}
 	 
 	private void updateBoard() {
 		for (int i = 0; i < board.length; i++) {
 			String buttonID = Integer.toString(i);
 			Button boardButtonSelect = (Button) gridPane.lookup("#"+buttonID);
-			if (board[i] == 'b') {
-				Image imageBlackDisc = new Image(getClass().getResourceAsStream("othello-disc-black.png"));
+			System.out.println(prevPosition);
+			// First, if board is locked that means the history button has been clicked -> show the previous move.
+			if (boardLocked && i == prevPosition) {
+				Image imageClickedSquare = new Image(getClass().getResourceAsStream("../clicked-position.png"));
+				boardButtonSelect.setGraphic(new ImageView(imageClickedSquare));
+			// If the board is not locked, assign images according to chars in board array.
+			} else if (board[i] == 'b') {
+				Image imageBlackDisc = new Image(getClass().getResourceAsStream("../othello-disc-black.png"));
 				boardButtonSelect.setGraphic(new ImageView(imageBlackDisc));
 			} else if (board[i] == 'w') {
-				Image imageWhiteDisc = new Image(getClass().getResourceAsStream("othello-disc-white.png"));
+				Image imageWhiteDisc = new Image(getClass().getResourceAsStream("../othello-disc-white.png"));
 				boardButtonSelect.setGraphic(new ImageView(imageWhiteDisc));
 			} else if (board[i] == 'a') {
-				Image imageAvailableSquare = new Image(getClass().getResourceAsStream("available-square.png"));
+				Image imageAvailableSquare = new Image(getClass().getResourceAsStream("../available-square.png"));
 				boardButtonSelect.setGraphic(new ImageView(imageAvailableSquare));
 			} else if (board[i] == '-') {
 				boardButtonSelect.setGraphic(null);
@@ -317,15 +367,16 @@ public class Board extends Application {
 		for (int i = 0; i < board.length; i++) {
 			if (board[i] == '-') {
 				// If there is an empty square but no available moves -> change to next player.
-				updatePlayers();
-				updatePlayerText();
-				resetAvailableMoves();
-				checkAvailableMoves();
+				updateState();
 				return;
 			}
 		}
 		results = boardEval.returnResults(board);
+		int whiteDiscs = results.get("white");
+		int blackDiscs = results.get("black");
 		System.out.println(results);
+		Text resultsText = (Text) gridPane.lookup("#resultsText");
+		resultsText.setText("White: " + whiteDiscs + "\nBlack: " + blackDiscs);
 	}
 	
 	public static void main(String[] args) {

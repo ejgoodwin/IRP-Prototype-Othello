@@ -1,7 +1,11 @@
+package minimax;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import game.GameLogic;
 
 public class Minimax {
 	
@@ -128,7 +132,7 @@ public class Minimax {
 
 	private ArrayList<Integer> evaluateBoard(char[] boardEval, char player) {
 		ArrayList<Integer> availSquares = new ArrayList<Integer>();
-		char[] boardEvalClone = boardEval.clone();
+		//char[] boardEvalClone = boardEval.clone();
 		if (player == 'w') {
 			logic.setPlayers('w', 'b');
 		} else {

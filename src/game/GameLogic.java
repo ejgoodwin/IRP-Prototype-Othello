@@ -1,3 +1,5 @@
+package game;
+
 public class GameLogic {
 	
 	int position;
@@ -29,7 +31,7 @@ public class GameLogic {
 		int decrement;
 		int increment;
 		int calcVar;
-		char[] boardClone = boardEval.clone();
+		//char[] boardClone = boardEval.clone();
 		int remainder = position%8;
 		successfulMove = false;
 		//System.out.println(board);
