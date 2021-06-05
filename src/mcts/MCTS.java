@@ -9,16 +9,18 @@ import java.util.Random;
 
 public class MCTS {
 	
-	public int findNextMove(char[] boardIn, char player) {
+	public int findNextMove(char[] boardIn, char currentPlayer, char nextPlayer, int level) {
 		long start = System.currentTimeMillis();
-        double end = start + 60 * 2;
+        double end = start + 60 * level;
         
         // Create a new tree.
         Tree tree = new Tree();
         // Get the root of that tree.
         NodeMCTS rootNode = tree.getRoot();
+        rootNode.setPlayers(currentPlayer, nextPlayer);
+        
 		// While there's still time.
-        int count = 0;
+        //int count = 0;
 		while (System.currentTimeMillis() < end) {
 //        while (count < 50000) {
 			// Create a node - select a promising node from the rootNode.
@@ -28,8 +30,8 @@ public class MCTS {
 			NodeMCTS playMeNode = expandNode(rootNode);
 			// Simulation.
 			NodeMCTS playoutResult = simulationPlayout(playMeNode);
-			backPropogation(playoutResult);
-			count++;
+			backPropogation(playoutResult, currentPlayer);
+			//count++;
 		}
 		NodeMCTS winnerNode = rootNode.getChildMaxScore();
 		System.out.println(winnerNode.getScore());
@@ -74,10 +76,10 @@ public class MCTS {
 		return node;
 	}
 	
-	private void backPropogation(NodeMCTS nodeToExplore) {
-		boolean aiWin = nodeToExplore.getWinState();
+	private void backPropogation(NodeMCTS nodeToExplore, char currentPlayer) {
+		char aiWin = nodeToExplore.getWinState();
 		int score;
-		if (aiWin) {
+		if (aiWin == currentPlayer) {
 			score = 10;
 		} else {
 			score = 0;

@@ -66,11 +66,11 @@ public class Board extends Application {
 	
 	// Difficulty level data.
 	int controlLevel = 2;
-	int variableLevel = 3;
+	int variableLevel = 4;
 	
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
-	String algorithmChoice = "alpha-beta";
+	String algorithmChoice = "mcts";
 	
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -322,7 +322,7 @@ public class Board extends Application {
 			alphaBeta.setPlayers(currentPlayer, nextPlayer);
 			positionAI = alphaBeta.runMinimax(level);
 		} else if (algorithmChoice == "mcts") {
-			positionAI = mcts.findNextMove(boardEvalClone, currentPlayer);
+			positionAI = mcts.findNextMove(boardEvalClone, currentPlayer, nextPlayer, level);
 		}
 		
 		//System.out.println(positionAI);
@@ -424,3 +424,4 @@ public class Board extends Application {
 
 // TODO: scenario - one player flips all of opponent's discs without finishing game. 
 // Switch players on MCTS.
+// Figure out MCTS.

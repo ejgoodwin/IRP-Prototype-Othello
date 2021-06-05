@@ -112,18 +112,20 @@ public class NodeMCTS {
 		}
 	}
 	
-	public boolean getWinState() {
+	public char getWinState() {
 		HashMap<String, Integer> results =  boardEval.returnResults(boardState);
 		if (results.get("white") > results.get("black")) {
-			System.out.println("win");
-			return true;
+			System.out.println("White win");
+			return 'w';
 		} else if (results.get("white") == results.get("black")) {
 			System.out.println("draw");
-			return false;
+			return 'd';
 		} else {
-			System.out.println("lose");
-			return false;
+			System.out.println("Black win");
+			return 'b';
 		}
+		
+		
 	}
 	
 	public void setScore(int scoreIn) {
