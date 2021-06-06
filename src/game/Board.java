@@ -66,7 +66,7 @@ public class Board extends Application {
 	
 	// Difficulty level data.
 	int controlLevel = 2;
-	int variableLevel = 4;
+	int variableLevel = 6;
 	
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
@@ -345,7 +345,7 @@ public class Board extends Application {
 		for (int i = 0; i < board.length; i++) {
 			String buttonID = Integer.toString(i);
 			Button boardButtonSelect = (Button) gridPane.lookup("#"+buttonID);
-			System.out.println(prevPosition);
+			//System.out.println(prevPosition);
 			// First, if board is locked that means the history button has been clicked -> show the previous move.
 			if (boardLocked && i == prevPosition) {
 				Image imageClickedSquare = new Image(getClass().getResourceAsStream("../clicked-position.png"));
@@ -424,4 +424,4 @@ public class Board extends Application {
 
 // TODO: scenario - one player flips all of opponent's discs without finishing game. 
 // Switch players on MCTS.
-// Figure out MCTS.
+// Figure out MCTS. Parents and scores. It's not running whole simulation. Add `this`.

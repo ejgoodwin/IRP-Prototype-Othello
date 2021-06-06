@@ -12,15 +12,15 @@ public class NodeMCTS {
 	NodeMCTS parentNode;
 	List<NodeMCTS> childArray = new ArrayList<>();
 	int visitCount;
-	char currentPlayer = 'w';
-	char nextPlayer = 'b';
+	char currentPlayer;
+	char nextPlayer;
 	GameLogic logic = new GameLogic();
 	BoardEvaluation boardEval = new BoardEvaluation();
 	int score;
 	int position;
 	
 	public NodeMCTS() {
-		childArray = new ArrayList<>();
+		this.childArray = new ArrayList<>();
 	}
 	
 	public NodeMCTS(char currentPlayer) {
@@ -28,7 +28,7 @@ public class NodeMCTS {
 	}
 	
 	public void setBoardState(char[] boardIn) {
-		boardState = boardIn;
+		this.boardState = boardIn;
 	}
 	
 	public List<NodeMCTS> getChildArray() {
@@ -44,11 +44,11 @@ public class NodeMCTS {
 	}
 	
 	public void incrementVisitCount() {
-		visitCount++;
+		this.visitCount++;
 	}
 	
 	public void setParent(NodeMCTS parentNodeIn) {
-		parentNode = parentNodeIn;
+		this.parentNode = parentNodeIn;
 	}
 	
 	public NodeMCTS getParent() {
@@ -64,8 +64,8 @@ public class NodeMCTS {
 	}
 	
 	public void setPlayers(char currentPlayerIn, char nextPlayerIn) {
-		currentPlayer = currentPlayerIn;
-		nextPlayer = nextPlayerIn;
+		this.currentPlayer = currentPlayerIn;
+		this.nextPlayer = nextPlayerIn;
 	}
 	
 	public int getPosition() {
@@ -73,40 +73,55 @@ public class NodeMCTS {
 	}
 	
 	public void setPosition(int positionIn) {
-		position = positionIn;
+		this.position = positionIn;
 	}
 	
 	// Create array of available moves.
 	public void createChildArray() {
-		char[] boardEvalClone = boardState.clone();
+		//System.out.println("create child array");
+		char[] boardEvalClone = this.boardState.clone();
 		int position;
 		NodeMCTS parent = getParent();
 		
 		if (parent != null) {
 			//System.out.println(parent.getNextPlayer());
-			currentPlayer = parent.getNextPlayer();
-			nextPlayer = parent.getCurrentPlayer();
+			//currentPlayer = parent.getNextPlayer();
+			//nextPlayer = parent.getCurrentPlayer();
+			//logic.setPlayers(parent.getCurrentPlayer(), parent.getNextPlayer());
+			logic.setPlayers(parent.getNextPlayer(), parent.getCurrentPlayer());
+			//System.out.println("parent exists");
+		} else {
+			logic.setPlayers(currentPlayer, nextPlayer);
+			//System.out.println("parent does not exists");
 		}
-		logic.setPlayers(currentPlayer, nextPlayer);
+		
 		// Reset available squares list.
-		for (int i = 0; i < boardState.length; i++) {
-			if (boardState[i] == '-' || boardState[i] == 'a') {
+		for (int i = 0; i < this.boardState.length; i++) {
+			if (this.boardState[i] == '-' || this.boardState[i] == 'a') {
 				position = i;
-				logic.setBoard(boardState);
+				logic.setBoard(this.boardState);
 				logic.setPosition(position);
 				//System.out.println("G");
 				boolean successfulMove = logic.checkNextItem(boardEvalClone);
+				//System.out.println(boardEvalClone);
 				if (successfulMove) {
 					//System.out.println("HEY");
 					//System.out.println(i);
 					// This move is available -> update board.
 					//boardState[i] = 'a';
 					// Add to available squares list.
-					NodeMCTS newNode = new NodeMCTS(nextPlayer);
-					newNode.setPosition(i);
+					NodeMCTS newNode = new NodeMCTS(this.nextPlayer);
+					newNode.setPosition(position);
 					char[] newBoardState = logic.getNewBoard();
+					//System.out.println("position of new node" +position);
 					newNode.setBoardState(newBoardState);
-					childArray.add(newNode);
+					//System.out.println(newBoardState);
+//					if (parent != null) {
+//						newNode.setPlayers(parent.getNextPlayer(), getCurrentPlayer());
+//					} else {
+//						newNode.setPlayers(nextPlayer, currentPlayer);
+//					}
+					this.childArray.add(newNode);
 				}
 			}
 		}
@@ -115,13 +130,13 @@ public class NodeMCTS {
 	public char getWinState() {
 		HashMap<String, Integer> results =  boardEval.returnResults(boardState);
 		if (results.get("white") > results.get("black")) {
-			System.out.println("White win");
+			//System.out.println("White win");
 			return 'w';
 		} else if (results.get("white") == results.get("black")) {
-			System.out.println("draw");
+			//System.out.println("draw");
 			return 'd';
 		} else {
-			System.out.println("Black win");
+			//System.out.println("Black win");
 			return 'b';
 		}
 		
@@ -129,7 +144,7 @@ public class NodeMCTS {
 	}
 	
 	public void setScore(int scoreIn) {
-		score = score + scoreIn;
+		this.score = score + scoreIn;
 	}
 	
 	public int getScore() {
@@ -140,7 +155,7 @@ public class NodeMCTS {
 		NodeMCTS maxNode = null;
 		int score = -1000000;
 		for (int i = 0; i < childArray.size(); i++) {
-			System.out.println(childArray.get(i).getScore());
+			System.out.println("get max score: " + childArray.get(i).getScore());
 			if (childArray.get(i).getScore() > score) {
 				maxNode = childArray.get(i);
 				score = maxNode.getScore();
