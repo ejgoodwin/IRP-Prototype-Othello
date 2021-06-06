@@ -45,6 +45,7 @@ public class NodeMCTS {
 	
 	public void incrementVisitCount() {
 		this.visitCount++;
+		System.out.println("Visit count incremented to: " + visitCount);
 	}
 	
 	public void setParent(NodeMCTS parentNodeIn) {

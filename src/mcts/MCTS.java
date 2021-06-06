@@ -11,7 +11,7 @@ public class MCTS {
 	
 	public int findNextMove(char[] boardIn, char currentPlayer, char nextPlayer, int level) {
 		long start = System.currentTimeMillis();
-        double end = start + 60 * 1;
+        double end = start + 60 * 3;
         
         // Create a new tree.
         Tree tree = new Tree();
@@ -142,6 +142,7 @@ public class MCTS {
 		NodeMCTS tempNode = nodeToExplore;
 		while (tempNode != null) {
 			tempNode.setScore(score);
+			tempNode.incrementVisitCount();
 			//System.out.println(tempNode.getScore());
 			tempNode = tempNode.getParent();
 			//System.out.println("TEMPSCORE: " + aiWin + " " + score);
@@ -155,11 +156,43 @@ public class MCTS {
 		//System.out.println("PARENT score: " + node.getScore());
 //		return Collections.max(node.getChildArray(), Comparator.comparing(c->utcValue(parentVisit, c.getScore(), c.getVisitCount())));
 	
-		List<NodeMCTS> children = node.getChildArray();
-		Random random = new Random();
-	    int randomNode = random.nextInt(children.size());
-	    NodeMCTS returnNode = children.get(randomNode);
-	    return returnNode;
+//		List<NodeMCTS> children = node.getChildArray();
+//		Random random = new Random();
+//	    int randomNode = random.nextInt(children.size());
+//	    NodeMCTS returnNode = children.get(randomNode);
+	    
+	    // Create child array.
+	    List<NodeMCTS> children = node.getChildArray();
+	    // Loop through to find the best node using UTC tree policy.
+	    NodeMCTS bestNodeUTC = children.get(0);
+	    double utcValue = 0;
+	    double utcValueTemp = 0;
+	    for (int i = 0; i < children.size(); i++) {
+	    	int totalVisit = parentVisit;
+	    	int nodeWinScore = children.get(i).getScore();
+	    	int nodeVisit = children.get(i).getVisitCount();
+	    	
+	    	System.out.println("totalVisit: " +totalVisit);
+	    	System.out.println("nodeWinScore: " +nodeWinScore);
+	    	System.out.println("nodeVisit: " +nodeVisit);
+	    	
+	    	// If a node has not yet been visited, it should be returned to be explored.
+	    	if (nodeVisit == 0) {
+	    		return children.get(i);
+	    	}
+	    	
+	    	utcValueTemp = (nodeWinScore / nodeVisit) +  1.41*Math.sqrt(Math.log(totalVisit) / nodeVisit);
+//	    	utcValueTemp = nodeWinScore/nodeVisit;
+//	    	double logMath = utcValueTemp + 1.41*Math.log(totalVisit) / nodeVisit;
+//	    	System.out.println("logger: " + logMath);
+	    	System.out.println("utc value: " +utcValueTemp);
+	    	if (utcValueTemp > utcValue) {
+	    		bestNodeUTC = children.get(i);
+	    		utcValue = utcValueTemp;
+	    	}
+	    }
+	    
+	    return bestNodeUTC;
 	}
 	
 	private double utcValue(int totalVisit, double nodeWinScore, int nodeVisit) {
@@ -171,5 +204,4 @@ public class MCTS {
 		//System.out.println("node visit: " + nodeVisit);
 		return ((double) nodeWinScore / (double) nodeVisit) +  1.41*Math.sqrt(Math.log(totalVisit) / (double) nodeVisit);
 	}
-
 }
