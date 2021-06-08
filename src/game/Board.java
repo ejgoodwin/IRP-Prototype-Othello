@@ -1,7 +1,25 @@
 package game;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import javax.swing.border.LineBorder;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -71,7 +89,7 @@ public class Board extends Application {
 	
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
-	String algorithmChoice = "minimax";
+	String algorithmChoice = "mcts";
 	
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -403,13 +421,67 @@ public class Board extends Application {
 		resultsText.setText("White: " + whiteDiscs + "\nBlack: " + blackDiscs);
 	}
 	
-	public static void main(String[] args) {
-
-		// Launch JavaFX UI.
-		launch(args);
-
+	public void startUI() {
+		
+		JFrame frame = new JFrame();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLayout(new GridLayout(2,1));
+		JPanel boardPanel = new JPanel(new GridLayout(8,8));
+		boardPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+		boardPanel.setLayout(new GridLayout(8,8));
+		
+		for (int i = 0; i < board.length; i++) {
+			JButton button = new JButton();
+			button.setPreferredSize(new Dimension(40, 40));
+		    
+			if (board[i] == 'b') {
+				BufferedImage imageBlackDisc;
+				try {
+					imageBlackDisc = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
+					button.setIcon(new ImageIcon(imageBlackDisc));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			    
+			} else if (board[i] == 'w') {
+				BufferedImage imageWhiteDisc;
+				try {
+					imageWhiteDisc = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
+					button.setIcon(new ImageIcon(imageWhiteDisc));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			    
+			} else if (board[i] == 'a') {
+				BufferedImage imageAvailableSquare;
+				try {
+					imageAvailableSquare = ImageIO.read(getClass().getResource("../available-square.png"));
+					button.setIcon(new ImageIcon(imageAvailableSquare));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			int buttonPosition = i;
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					System.out.println(buttonPosition);
+					//handleSquareClick(buttonPosition);
+				}
+			});
+			button.setBackground(Color.decode("#399E41"));
+			button.setOpaque(true);
+			button.setBorder(new LineBorder(Color.BLACK));
+			boardPanel.add(button);
+		}
+		
+		JLabel currentPlayerText = new JLabel("Current player: b");
+		frame.add(boardPanel);
+		frame.add(currentPlayerText);
+		
+		frame.setSize(450,650); 
+		frame.setMaximumSize(new Dimension(450, 650));
+		frame.setVisible(true);  
 	}
-
 }
 
 // TODO: scenario - one player flips all of opponent's discs without finishing game. 
