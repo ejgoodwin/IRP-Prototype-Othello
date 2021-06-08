@@ -1,6 +1,7 @@
 package game;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -37,6 +39,9 @@ import minimax.AlphaBeta;
 import minimax.Minimax;
 
 public class Board extends Application {
+	
+	JFrame frame;
+	JPanel boardPanel;
 	
 	// Boards: current, previous and next.
 	// A starter board is kept ready to be assigned to `board` when the game is reset.
@@ -264,7 +269,7 @@ public class Board extends Application {
 	
 	private void updateState() {
 		updatePlayers();
-		updatePlayerText();
+		//updatePlayerText();
 		resetAvailableMoves();
 		checkAvailableMoves();
 		updateBoard();
@@ -352,25 +357,30 @@ public class Board extends Application {
 	}
 	 
 	private void updateBoard() {
+		System.out.println("test");
 		for (int i = 0; i < board.length; i++) {
-			String buttonID = Integer.toString(i);
-			Button boardButtonSelect = (Button) gridPane.lookup("#"+buttonID);
+			Component[] component = boardPanel.getComponents();	
 			// First, if board is locked that means the history button has been clicked -> show the previous move.
-			if (boardLocked && i == prevPosition) {
-				Image imageClickedSquare = new Image(getClass().getResourceAsStream("../clicked-position.png"));
-				boardButtonSelect.setGraphic(new ImageView(imageClickedSquare));
-			// If the board is not locked, assign images according to chars in board array.
-			} else if (board[i] == 'b') {
-				Image imageBlackDisc = new Image(getClass().getResourceAsStream("../othello-disc-black.png"));
-				boardButtonSelect.setGraphic(new ImageView(imageBlackDisc));
-			} else if (board[i] == 'w') {
-				Image imageWhiteDisc = new Image(getClass().getResourceAsStream("../othello-disc-white.png"));
-				boardButtonSelect.setGraphic(new ImageView(imageWhiteDisc));
-			} else if (board[i] == 'a') {
-				Image imageAvailableSquare = new Image(getClass().getResourceAsStream("../available-square.png"));
-				boardButtonSelect.setGraphic(new ImageView(imageAvailableSquare));
-			} else if (board[i] == '-') {
-				boardButtonSelect.setGraphic(null);
+			try {
+				BufferedImage imageButton;
+				if (boardLocked && i == prevPosition) {
+					imageButton = ImageIO.read(getClass().getResource("../clicked-position.png"));
+					((AbstractButton) component[i]).setIcon(new ImageIcon(imageButton));
+				} else if (board[i] == 'b') {
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
+					((AbstractButton) component[i]).setIcon(new ImageIcon(imageButton));
+				} else if (board[i] == 'w') {
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
+					((AbstractButton) component[i]).setIcon(new ImageIcon(imageButton));
+				} else if (board[i] == 'a') {
+					imageButton = ImageIO.read(getClass().getResource("../available-square.png"));
+					((AbstractButton) component[i]).setIcon(new ImageIcon(imageButton));
+				} else if (board[i] == '-') {
+					((AbstractButton) component[i]).setIcon(null);
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
@@ -423,10 +433,10 @@ public class Board extends Application {
 	
 	public void startUI() {
 		
-		JFrame frame = new JFrame();
+		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLayout(new GridLayout(2,1));
-		JPanel boardPanel = new JPanel(new GridLayout(8,8));
+		boardPanel = new JPanel(new GridLayout(8,8));
 		boardPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 		boardPanel.setLayout(new GridLayout(8,8));
 		
@@ -465,9 +475,10 @@ public class Board extends Application {
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					System.out.println(buttonPosition);
-					//handleSquareClick(buttonPosition);
+					handleSquareClick(buttonPosition);
 				}
 			});
+			button.setName(Integer.toString(i));
 			button.setBackground(Color.decode("#399E41"));
 			button.setOpaque(true);
 			button.setBorder(new LineBorder(Color.BLACK));
