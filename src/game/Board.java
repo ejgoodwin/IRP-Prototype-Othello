@@ -378,7 +378,6 @@ public class Board extends Application {
 				} else if (board[i] == '-') {
 					((AbstractButton) component[i]).setIcon(null);
 				}
-				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -432,7 +431,6 @@ public class Board extends Application {
 	}
 	
 	public void startUI() {
-		
 		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLayout(new GridLayout(2,1));
@@ -443,33 +441,21 @@ public class Board extends Application {
 		for (int i = 0; i < board.length; i++) {
 			JButton button = new JButton();
 			button.setPreferredSize(new Dimension(40, 40));
-		    
-			if (board[i] == 'b') {
-				BufferedImage imageBlackDisc;
-				try {
-					imageBlackDisc = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
-					button.setIcon(new ImageIcon(imageBlackDisc));
-				} catch (IOException e) {
-					e.printStackTrace();
+			BufferedImage imageButton;
+			try {
+				if (board[i] == 'b') {
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
+					button.setIcon(new ImageIcon(imageButton));
+				} else if (board[i] == 'w') {
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
+					button.setIcon(new ImageIcon(imageButton));
+				} else if (board[i] == 'a') {
+					imageButton = ImageIO.read(getClass().getResource("../available-square.png"));
+					button.setIcon(new ImageIcon(imageButton));
 				}
-			    
-			} else if (board[i] == 'w') {
-				BufferedImage imageWhiteDisc;
-				try {
-					imageWhiteDisc = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
-					button.setIcon(new ImageIcon(imageWhiteDisc));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			    
-			} else if (board[i] == 'a') {
-				BufferedImage imageAvailableSquare;
-				try {
-					imageAvailableSquare = ImageIO.read(getClass().getResource("../available-square.png"));
-					button.setIcon(new ImageIcon(imageAvailableSquare));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 			int buttonPosition = i;
 			button.addActionListener(new ActionListener() {
