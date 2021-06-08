@@ -25,10 +25,10 @@ public class Board extends Application {
 	char[] boardStarter = {
 		'-','-','-','-','-','-','-','-',
 		'-','-','-','-','-','-','-','-',
-		'-','-','-','-','-','-','-','-',
-		'-','-','-','b','w','-','-','-',
-		'-','-','-','w','b','-','-','-',
-		'-','-','-','-','-','-','-','-',
+		'-','-','-','-','a','-','-','-',
+		'-','-','-','b','w','a','-','-',
+		'-','-','a','w','b','-','-','-',
+		'-','-','-','a','-','-','-','-',
 		'-','-','-','-','-','-','-','-',
 		'-','-','-','-','-','-','-','-',
 	};
@@ -39,9 +39,10 @@ public class Board extends Application {
 	// Information for board state.
 	char currentPlayer = 'b';
 	char nextPlayer = 'w';
-	boolean boardLocked = false;
 	int position;
 	// Used with history functionality.
+	char prevPlayer;
+	boolean boardLocked = false;
 	int prevPosition;
 	
 	// Make GridPane available outside the `start` function be able to select board squares when updating UI.
@@ -66,19 +67,16 @@ public class Board extends Application {
 	
 	// Difficulty level data.
 	int controlLevel = 2;
-	int variableLevel = 6;
+	int variableLevel = 4;
 	
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
-	String algorithmChoice = "mcts";
+	String algorithmChoice = "minimax";
 	
 	@Override
 	public void start(Stage stage) throws Exception {
 		
 		try {
-			// Check for available moves before rendering UI so that available squares are coloured correctly.
-			checkAvailableMoves();
-			
 			// Set title for stage.
 			stage.setTitle("IRP: Othello Prototype");
 			
@@ -143,7 +141,7 @@ public class Board extends Application {
 			}
 			
 			// Current player
-			Text currentPlayer = new Text("Current player: Black"); 
+			Text currentPlayer = new Text("Current player: b"); 
 			HBox currentPlayerHBox = new HBox();
 			currentPlayerHBox.setPadding(new Insets(10,0,10,0));
 			currentPlayerHBox.setAlignment(Pos.CENTER);
@@ -226,7 +224,6 @@ public class Board extends Application {
 	
 	// Create array of available moves.
 	private void checkAvailableMoves() {
-		char[] boardEvalClone = board.clone();
 		int position;
 		logic.setPlayers(currentPlayer, nextPlayer);
 		// Reset available squares list.
@@ -236,7 +233,7 @@ public class Board extends Application {
 				position = i;
 				logic.setBoard(board);
 				logic.setPosition(position);
-				boolean successfulMove = logic.checkNextItem(boardEvalClone);
+				boolean successfulMove = logic.checkNextItem();
 				if (successfulMove) {
 					// This move is available -> update board array because array is used to render/update board UI.
 					board[i] = 'a';
@@ -283,33 +280,30 @@ public class Board extends Application {
 	private void handleSquareClick(int positionIn) {
 		System.out.println(boardLocked);
 		 if (board[positionIn] == 'a' && boardLocked == false) {
-			char[] boardEvalClone = board.clone();
 			logic.setPlayers(currentPlayer, nextPlayer);
 			logic.setBoard(board);
 			logic.setPosition(positionIn);
-			boolean successfulMove = logic.checkNextItem(boardEvalClone);
+			boolean successfulMove = logic.checkNextItem();
 			if (successfulMove) {
 				prevBoard = board;
 				board = logic.getNewBoard();
 				prevPosition = positionIn;
+				prevPlayer = currentPlayer;
 				updateState();
 				if (availableSquares.size() == 0) {
 					checkWinner();
 				}
-				//runAISearch();
 			}
 		}
 	}
 	
 	private void runAISearch() {
 		char[] boardEvalClone = board.clone();
-		//ab.setBoard(board.clone());
 		int level;
 		if (currentPlayer == 'b') {
 			level = controlLevel;
 		} else {
 			level = variableLevel;
-			//System.out.println(level);
 		}
 		// Run correct algorithm.
 		int positionAI = -1;
@@ -320,21 +314,19 @@ public class Board extends Application {
 		} else if (algorithmChoice == "alpha-beta") {
 			alphaBeta.setBoard(board.clone());
 			alphaBeta.setPlayers(currentPlayer, nextPlayer);
-			positionAI = alphaBeta.runMinimax(level);
+			positionAI = alphaBeta.runAlphaBeta(level);
 		} else if (algorithmChoice == "mcts") {
 			positionAI = mcts.findNextMove(boardEvalClone, currentPlayer, nextPlayer, level);
 		}
 		
-		//System.out.println(positionAI);
-		//int positionAI = ab.runMinimax();
-		//System.out.println(positionAI);
 		logic.setPlayers(currentPlayer, nextPlayer);
 		logic.setBoard(board);
 		logic.setPosition(positionAI);
-		logic.checkNextItem(boardEvalClone);
+		logic.checkNextItem();
 		prevBoard = board;
 		board = logic.getNewBoard();
 		prevPosition = positionAI;
+		prevPlayer = currentPlayer;
 		updateState();
 		if (availableSquares.size() == 0) {
 			checkWinner();
@@ -345,7 +337,6 @@ public class Board extends Application {
 		for (int i = 0; i < board.length; i++) {
 			String buttonID = Integer.toString(i);
 			Button boardButtonSelect = (Button) gridPane.lookup("#"+buttonID);
-			//System.out.println(prevPosition);
 			// First, if board is locked that means the history button has been clicked -> show the previous move.
 			if (boardLocked && i == prevPosition) {
 				Image imageClickedSquare = new Image(getClass().getResourceAsStream("../clicked-position.png"));
@@ -368,14 +359,13 @@ public class Board extends Application {
 
 	private void updatePlayerText() {
 		// Lookup the Text node with the CSS ID set earlier and set text to currentPlayer.
-		String playerString;
-		if (currentPlayer == 'b') {
-			playerString = "black";
-		} else {
-			playerString = "white";
-		}
 		Text playerText = (Text) gridPane.lookup("#currenPlayerText");
-		playerText.setText("Current player: " + playerString);
+		if (boardLocked) {
+			playerText.setText("Current player: " + prevPlayer);
+		} else {
+			playerText.setText("Current player: " + currentPlayer);
+		}
+
 	}
 
 	private void updatePlayers() {
@@ -423,5 +413,3 @@ public class Board extends Application {
 }
 
 // TODO: scenario - one player flips all of opponent's discs without finishing game. 
-// Switch players on MCTS.
-// Figure out MCTS. Parents and scores. It's not running whole simulation. Add `this`.

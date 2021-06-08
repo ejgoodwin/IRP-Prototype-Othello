@@ -35,7 +35,7 @@ public class AlphaBeta {
 		nextPlayer = nextPlayerIn;
 	}
 	
-	public int runMinimax(int levelIn) {
+	public int runAlphaBeta(int levelIn) {
 		counter = 0;
 		level = levelIn;
 		Map<String, Integer> minimaxMap = alphaBeta(board, currentPlayer, 0, -1000000, 1000000);
@@ -68,7 +68,7 @@ public class AlphaBeta {
 				logic.setPosition(availSquares.get(i));
 				logic.setPlayers(currentPlayer, nextPlayer);
 				logic.setBoard(boardMinMAx);
-				logic.checkNextItem(boardMinMAx);
+				logic.checkNextItem();
 				char[] newBoard = logic.getNewBoard();
 				//System.out.println(newBoard);
 				// store result of minimax
@@ -97,7 +97,7 @@ public class AlphaBeta {
 				logic.setPosition(availSquares.get(i));
 				logic.setPlayers(nextPlayer, currentPlayer);
 				logic.setBoard(boardMinMAx);
-				logic.checkNextItem(boardMinMAx);
+				logic.checkNextItem();
 				char[] newBoard = logic.getNewBoard();
 				Map<String, Integer> result = alphaBeta(newBoard, currentPlayer, depth+1, alpha, beta);
 				// Find the MINIMUM score
@@ -154,7 +154,7 @@ public class AlphaBeta {
 				position = i;
 				logic.setBoard(boardEval);
 				logic.setPosition(position);
-				boolean successfulMove = logic.checkNextItem(boardEval);
+				boolean successfulMove = logic.checkNextItem();
 				if (successfulMove) {
 					//System.out.println(i);
 					// This move is available -> add it to the array.

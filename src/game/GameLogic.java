@@ -26,16 +26,19 @@ public class GameLogic {
 	}
 	
 	
-	public boolean checkNextItem(char[] boardEval) {
+	public boolean checkNextItem() {
 		int condition;
 		int decrement;
 		int increment;
 		int calcVar;
-		//char[] boardClone = boardEval.clone();
 		int remainder = position%8;
 		successfulMove = false;
-		//System.out.println(board);
-		//System.out.println(currentPlayer);
+		
+		// Sanity check -> return false if position is not on the board (position p should be: 0 > p < 63).
+		if (position < 0 || position > 63) {
+			return false;
+		}
+		
 		// North
 		if (position > 7 && board[position - 8] == nextPlayer) {
 			condition = 0;
@@ -71,11 +74,11 @@ public class GameLogic {
 				evaluationFunctionPositive(board.clone(), condition, increment);
 			}
 
-			// Southeast.
+			// South east.
 			if (position < 55 && board[position + 9] == nextPlayer) {
 				condition = position;
 				increment = 9;
-				// Find most southeasterly square.
+				// Find most south easterly square.
 				while (condition % 8 != 7 && condition >= 0) {
 					condition += increment;
 				}
@@ -85,11 +88,11 @@ public class GameLogic {
 		
 		// Check position is not at left edge of board.
 		if (remainder != 0) {
-			// Southwest.
+			// South west.
 			if (position < 57 && board[position + 7] == nextPlayer) {
 				condition = position;
 				increment = 7;
-				// Find most southwesterly square.
+				// Find most south westerly square.
 				while (condition % 8 != 0) {
 					condition += increment;
 				}
