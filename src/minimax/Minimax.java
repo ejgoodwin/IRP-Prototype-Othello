@@ -66,7 +66,7 @@ public class Minimax {
 				logic.setPosition(availSquares.get(i));
 				logic.setPlayers(currentPlayer, nextPlayer);
 				logic.setBoard(boardMinMAx);
-				logic.checkNextItem(boardMinMAx);
+				logic.checkNextItem();
 				char[] newBoard = logic.getNewBoard();
 				//System.out.println(newBoard);
 				// store result of minimax
@@ -86,7 +86,7 @@ public class Minimax {
 				logic.setPosition(availSquares.get(i));
 				logic.setPlayers(nextPlayer, currentPlayer);
 				logic.setBoard(boardMinMAx);
-				logic.checkNextItem(boardMinMAx);
+				logic.checkNextItem();
 				char[] newBoard = logic.getNewBoard();
 				Map<String, Integer> result = minimaxSearch(newBoard, currentPlayer, depth+1);
 				// Find the MINIMUM score
@@ -136,7 +136,7 @@ public class Minimax {
 				position = i;
 				logic.setBoard(boardEval);
 				logic.setPosition(position);
-				boolean successfulMove = logic.checkNextItem(boardEval);
+				boolean successfulMove = logic.checkNextItem();
 				if (successfulMove) {
 					//System.out.println(i);
 					// This move is available -> add it to the array.

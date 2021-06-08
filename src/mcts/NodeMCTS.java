@@ -8,19 +8,20 @@ import game.GameLogic;
 import game.BoardEvaluation;
 
 public class NodeMCTS {
-	char[] boardState;
+	
+	BoardEvaluation boardEval = new BoardEvaluation();
+	GameLogic logic = new GameLogic();
 	NodeMCTS parentNode;
 	List<NodeMCTS> childArray = new ArrayList<>();
+	char[] boardState;
 	int visitCount;
-	char currentPlayer = 'w';
-	char nextPlayer = 'b';
-	GameLogic logic = new GameLogic();
-	BoardEvaluation boardEval = new BoardEvaluation();
+	char currentPlayer;
+	char nextPlayer;
 	int score;
 	int position;
 	
 	public NodeMCTS() {
-		childArray = new ArrayList<>();
+		this.childArray = new ArrayList<>();
 	}
 	
 	public NodeMCTS(char currentPlayer) {
@@ -28,31 +29,32 @@ public class NodeMCTS {
 	}
 	
 	public void setBoardState(char[] boardIn) {
-		boardState = boardIn;
+		this.boardState = boardIn;
 	}
 	
-	public List<NodeMCTS> getChildArray() {
-		return childArray;
+	public void setParent(NodeMCTS parentNodeIn) {
+		this.parentNode = parentNodeIn;
+	}
+	
+	public void setPlayers(char currentPlayerIn, char nextPlayerIn) {
+		this.currentPlayer = currentPlayerIn;
+		this.nextPlayer = nextPlayerIn;
+	}
+	
+	public void setPosition(int positionIn) {
+		this.position = positionIn;
+	}
+	
+	public void setScore(int scoreIn) {
+		this.score = score + scoreIn;
 	}
 	
 	public char[] getBoardState() {
 		return boardState;
 	}
 	
-	public int getVisitCount() {
-		return visitCount;
-	}
-	
-	public void incrementVisitCount() {
-		visitCount++;
-	}
-	
-	public void setParent(NodeMCTS parentNodeIn) {
-		parentNode = parentNodeIn;
-	}
-	
-	public NodeMCTS getParent() {
-		return parentNode;
+	public List<NodeMCTS> getChildArray() {
+		return childArray;
 	}
 	
 	public char getCurrentPlayer() {
@@ -63,50 +65,53 @@ public class NodeMCTS {
 		return nextPlayer;
 	}
 	
-	public void setPlayers(char currentPlayerIn, char nextPlayerIn) {
-		currentPlayer = currentPlayerIn;
-		nextPlayer = nextPlayerIn;
+	public NodeMCTS getParent() {
+		return parentNode;
 	}
 	
 	public int getPosition() {
 		return position;
 	}
 	
-	public void setPosition(int positionIn) {
-		position = positionIn;
+	public int getScore() {
+		return score;
+	}
+	
+	public int getVisitCount() {
+		return visitCount;
+	}
+	
+	public void incrementVisitCount() {
+		this.visitCount++;
 	}
 	
 	// Create array of available moves.
 	public void createChildArray() {
-		char[] boardEvalClone = boardState.clone();
 		int position;
 		NodeMCTS parent = getParent();
 		
+		// If the node has a parent, players should be set to the opposite of the parents (current is next, next is current).
+		// Else means the node does not have parents, it's the root, so players should be set to its own current and next.  
 		if (parent != null) {
-			//System.out.println(parent.getNextPlayer());
-			currentPlayer = parent.getNextPlayer();
-			nextPlayer = parent.getCurrentPlayer();
+			logic.setPlayers(parent.getNextPlayer(), parent.getCurrentPlayer());
+		} else {
+			logic.setPlayers(currentPlayer, nextPlayer);
 		}
-		logic.setPlayers(currentPlayer, nextPlayer);
+		
 		// Reset available squares list.
-		for (int i = 0; i < boardState.length; i++) {
-			if (boardState[i] == '-' || boardState[i] == 'a') {
+		for (int i = 0; i < this.boardState.length; i++) {
+			if (this.boardState[i] == '-' || this.boardState[i] == 'a') {
 				position = i;
-				logic.setBoard(boardState);
+				logic.setBoard(this.boardState);
 				logic.setPosition(position);
-				//System.out.println("G");
-				boolean successfulMove = logic.checkNextItem(boardEvalClone);
+				boolean successfulMove = logic.checkNextItem();
 				if (successfulMove) {
-					//System.out.println("HEY");
-					//System.out.println(i);
-					// This move is available -> update board.
-					//boardState[i] = 'a';
 					// Add to available squares list.
-					NodeMCTS newNode = new NodeMCTS(nextPlayer);
-					newNode.setPosition(i);
+					NodeMCTS newNode = new NodeMCTS(this.nextPlayer);
+					newNode.setPosition(position);
 					char[] newBoardState = logic.getNewBoard();
 					newNode.setBoardState(newBoardState);
-					childArray.add(newNode);
+					this.childArray.add(newNode);
 				}
 			}
 		}
@@ -115,32 +120,19 @@ public class NodeMCTS {
 	public char getWinState() {
 		HashMap<String, Integer> results =  boardEval.returnResults(boardState);
 		if (results.get("white") > results.get("black")) {
-			System.out.println("White win");
 			return 'w';
 		} else if (results.get("white") == results.get("black")) {
-			System.out.println("draw");
 			return 'd';
 		} else {
-			System.out.println("Black win");
 			return 'b';
 		}
-		
-		
-	}
-	
-	public void setScore(int scoreIn) {
-		score = score + scoreIn;
-	}
-	
-	public int getScore() {
-		return score;
 	}
 	
 	public NodeMCTS getChildMaxScore() {
 		NodeMCTS maxNode = null;
 		int score = -1000000;
 		for (int i = 0; i < childArray.size(); i++) {
-			System.out.println(childArray.get(i).getScore());
+			System.out.println("get max score: " + childArray.get(i).getScore());
 			if (childArray.get(i).getScore() > score) {
 				maxNode = childArray.get(i);
 				score = maxNode.getScore();
