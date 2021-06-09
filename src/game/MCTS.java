@@ -8,7 +8,7 @@ public class MCTS {
 	
 	public int findNextMove(char[] boardIn, char currentPlayer, char nextPlayer, int level) {
 		long start = System.currentTimeMillis();
-        double end = start + 60 * 2;
+        double end = start + 60 * level;
         
         // Create a new tree.
         Tree tree = new Tree();
@@ -55,7 +55,7 @@ public class MCTS {
 		
 		// Run until a leaf node is found.
 		while (node.getChildArray().size() > 0) {
-			node = findBestNodeUTC(node);
+			node = selectionPolicyUTC(node);
 		}
 		return node;
 	}
@@ -99,7 +99,7 @@ public class MCTS {
 		char aiWin = nodeToExplore.getWinState();
 		int score;
 		if (aiWin == currentPlayer) {
-			score = 10;
+			score = 1;
 		} else {
 			score = 0;
 		}
@@ -111,7 +111,7 @@ public class MCTS {
 		}
 	}
 	
-	private NodeMCTS findBestNodeUTC(NodeMCTS node) {
+	private NodeMCTS selectionPolicyUTC(NodeMCTS node) {
 		int parentVisit = node.getVisitCount();
 	    
 	    // Create child array.

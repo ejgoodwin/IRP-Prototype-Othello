@@ -73,7 +73,7 @@ public class Board {
 	
 	// Difficulty level data.
 	int controlLevel = 2;
-	int variableLevel = 4;
+	int variableLevel = 2;
 	
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
@@ -106,7 +106,7 @@ public class Board {
 					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
 					button.setIcon(new ImageIcon(imageButton));
 				} else if (board[i] == 'a') {
-					button.setBackground(Color.decode("#FFFF93"));
+					button.setBackground(Color.decode("#F0E79C"));
 				}
 				
 			} catch (IOException e) {
@@ -123,9 +123,12 @@ public class Board {
 		}
 		
 		// Current player text.
+		JPanel currentPlayerPanel = new JPanel();
+		currentPlayerPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 16, 16));
 		JLabel currentPlayerText = new JLabel("Current player: b");
 		currentPlayerText.setAlignmentX(Component.CENTER_ALIGNMENT);
-		textPanel.add(currentPlayerText);
+		currentPlayerPanel.add(currentPlayerText);
+		textPanel.add(currentPlayerPanel);
 		
 		// History buttons.
 		JPanel historyButtonsPanel = new JPanel();
@@ -157,10 +160,12 @@ public class Board {
 		});
 		
 		// Display Results.
-		JLabel resultsLabel = new JLabel();
+		JLabel resultsLabel = new JLabel(" ");
 		resultsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
 		// Reset Button.
+		JPanel resetButtonPanel = new JPanel();
+		resetButtonPanel.setBorder(BorderFactory.createEmptyBorder(32, 16, 16, 16));
 		JButton resetButton = new JButton("Reset game");
 		resetButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		resetButton.addActionListener(new ActionListener() {
@@ -168,11 +173,12 @@ public class Board {
 				handleResetGame();
 			}
 		});
+		resetButtonPanel.add(resetButton);
 		
 		textPanel.add(aiButton);
 		textPanel.add(historyButtonsPanel);
 		textPanel.add(resultsLabel);
-		textPanel.add(resetButton);
+		textPanel.add(resetButtonPanel);
 		// Add board and text panels to frame.
 		frame.add(boardPanel);
 		frame.add(textPanel);
@@ -189,8 +195,11 @@ public class Board {
 		currentPlayer = 'b';
 		nextPlayer = 'w';
 		
-		Component[] component = textPanel.getComponents();
-		JLabel resultsLabel = (JLabel) component[3];
+		JPanel playerTextPanel = (JPanel) textPanel.getComponent(0);
+		JLabel playerText = (JLabel) playerTextPanel.getComponent(0);
+		playerText.setText("Current player: " + currentPlayer);
+		
+		JLabel resultsLabel = (JLabel) textPanel.getComponent(3);
 		resultsLabel.setText("");
 		updateBoard();
 	}
@@ -231,12 +240,10 @@ public class Board {
 		board = nextBoard;
 		boardLocked = false;
 		updateState();
-
-		Component[] component = textPanel.getComponents();	
-		JPanel historyPanel = (JPanel) component[2];
-		Component[] historyComponent = historyPanel.getComponents();
-		JButton forwardButton = (JButton) historyComponent[1];
-		JButton backButton = (JButton) historyComponent[0];
+	
+		JPanel historyPanel = (JPanel) textPanel.getComponent(2);
+		JButton forwardButton = (JButton) historyPanel.getComponent(1);
+		JButton backButton = (JButton) historyPanel.getComponent(0);
 		
 		backButton.setEnabled(true);
 		forwardButton.setEnabled(false);
@@ -249,12 +256,10 @@ public class Board {
 		// Lock board so user cannot click. They must return to current state using forward button.
 		boardLocked = true;
 		updateState();
-		
-		Component[] component = textPanel.getComponents();	
-		JPanel historyPanel = (JPanel) component[2];
-		Component[] historyComponent = historyPanel.getComponents();
-		JButton forwardButton = (JButton) historyComponent[1];
-		JButton backButton = (JButton) historyComponent[0];
+			
+		JPanel historyPanel = (JPanel) textPanel.getComponent(2);
+		JButton forwardButton = (JButton) historyPanel.getComponent(1);
+		JButton backButton = (JButton) historyPanel.getComponent(0);
 		
 		backButton.setEnabled(false);
 		forwardButton.setEnabled(true);
@@ -317,29 +322,28 @@ public class Board {
 	}
 	 
 	private void updateBoard() {
-		for (int i = 0; i < board.length; i++) {
-			Component[] component = boardPanel.getComponents();	
+		for (int i = 0; i < board.length; i++) {	
 			// First, if board is locked that means the history button has been clicked -> show the previous move.
 			try {
 				BufferedImage imageButton;
-				JButton boardButton = (JButton) component[i];
+				JButton boardButton = (JButton) boardPanel.getComponent(i);
 				if (boardLocked && i == prevPosition) {
-					component[i].setBackground(Color.decode("#93FBFF"));
+					boardButton.setBackground(Color.decode("#9CF0F0"));
 					boardButton.setIcon(null);
 				} else if (board[i] == 'b') {
 					imageButton = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
 					boardButton.setIcon(new ImageIcon(imageButton));
-					component[i].setBackground(Color.decode("#399E41"));
+					boardButton.setBackground(Color.decode("#399E41"));
 				} else if (board[i] == 'w') {
 					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
 					boardButton.setIcon(new ImageIcon(imageButton));
-					component[i].setBackground(Color.decode("#399E41"));
+					boardButton.setBackground(Color.decode("#399E41"));
 				} else if (board[i] == 'a') {
-					component[i].setBackground(Color.decode("#FFFF93"));
+					boardButton.setBackground(Color.decode("#F0E79C"));
 					boardButton.setIcon(null);
 				} else if (board[i] == '-') {
 					boardButton.setIcon(null);
-					component[i].setBackground(Color.decode("#399E41"));
+					boardButton.setBackground(Color.decode("#399E41"));
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -349,8 +353,8 @@ public class Board {
 
 	private void updatePlayerText() {
 		// Lookup the Text node and set text to currentPlayer.
-		Component[] component = textPanel.getComponents();
-		JLabel playerText = (JLabel) component[0];
+		JPanel playerTextPanel = (JPanel) textPanel.getComponent(0);
+		JLabel playerText = (JLabel) playerTextPanel.getComponent(0);
 		if (boardLocked) {
 			playerText.setText("Current player: " + prevPlayer);
 		} else {
@@ -390,8 +394,7 @@ public class Board {
 		int blackDiscs = results.get("black");
 		System.out.println(results);
 		
-		Component[] component = textPanel.getComponents();
-		JLabel resultsLabel = (JLabel) component[3];
-		resultsLabel.setText("White: " + whiteDiscs + " Black: " + blackDiscs);
+		JLabel resultsLabel = (JLabel) textPanel.getComponent(3);
+		resultsLabel.setText("Black: " + blackDiscs + " White: " + whiteDiscs);
 	}
 }
