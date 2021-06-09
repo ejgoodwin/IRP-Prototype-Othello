@@ -1,5 +1,6 @@
 package game;
 
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -78,6 +79,109 @@ public class Board {
 	// Choices: "minimax", "alpha-beta", "mcts".
 	String algorithmChoice = "mcts";
 	
+	public void startUI() {
+		// Build UI using Java Swing.
+		frame = new JFrame("IRP Prototype: Othello");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLayout(new FlowLayout());
+		boardPanel = new JPanel(new GridLayout(8,8));
+		boardPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+		boardPanel.setLayout(new GridLayout(8,8));
+		textPanel = new JPanel();
+		textPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 16, 16));
+		textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+		
+		for (int i = 0; i < board.length; i++) {
+			JButton button = new JButton();
+			button.setPreferredSize(new Dimension(40, 40));
+			button.setBackground(Color.decode("#399E41"));
+			button.setOpaque(true);
+			button.setBorder(new LineBorder(Color.BLACK));
+			BufferedImage imageButton;
+			try {
+				if (board[i] == 'b') {
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
+					button.setIcon(new ImageIcon(imageButton));
+				} else if (board[i] == 'w') {
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
+					button.setIcon(new ImageIcon(imageButton));
+				} else if (board[i] == 'a') {
+					button.setBackground(Color.decode("#FFFF93"));
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			int buttonPosition = i;
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					System.out.println(buttonPosition);
+					handleSquareClick(buttonPosition);
+				}
+			});
+			boardPanel.add(button);
+		}
+		
+		// Current player text.
+		JLabel currentPlayerText = new JLabel("Current player: b");
+		currentPlayerText.setAlignmentX(Component.CENTER_ALIGNMENT);
+		textPanel.add(currentPlayerText);
+		
+		// History buttons.
+		JPanel historyButtonsPanel = new JPanel();
+		JButton backButton = new JButton("Back");
+		backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		backButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				handleBackClick();
+			}
+		});
+		JButton forwardButton = new JButton("Forward");
+		forwardButton.setEnabled(false);
+		forwardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		forwardButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				handleForwardClick();
+			}
+		});
+		historyButtonsPanel.add(backButton);
+		historyButtonsPanel.add(forwardButton);
+		
+		// AI move button.
+		JButton aiButton = new JButton("AI move");
+		aiButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		aiButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				runAISearch();
+			}
+		});
+		
+		// Display Results.
+		JLabel resultsLabel = new JLabel();
+		resultsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		// Reset Button.
+		JButton resetButton = new JButton("Reset game");
+		resetButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		resetButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				handleResetGame();
+			}
+		});
+		
+		textPanel.add(aiButton);
+		textPanel.add(historyButtonsPanel);
+		textPanel.add(resultsLabel);
+		textPanel.add(resetButton);
+		// Add board and text panels to frame.
+		frame.add(boardPanel);
+		frame.add(textPanel);
+		
+		frame.setSize(450,650); 
+		frame.setMaximumSize(new Dimension(450, 650));
+		frame.setVisible(true);  
+	}
+	
 	private void handleResetGame() {
 		board = boardStarter;
 		prevBoard = boardStarter;
@@ -91,7 +195,7 @@ public class Board {
 		updateBoard();
 	}
 	
-	// Create array of available moves.
+	// Create array of available moves and update the board to reflect state with available moves.
 	private void checkAvailableMoves() {
 		int position;
 		logic.setPlayers(currentPlayer, nextPlayer);
@@ -114,6 +218,7 @@ public class Board {
 	}
 	
 	private void updateState() {
+		// Update players, player text, available moves, and board.
 		updatePlayers();
 		updatePlayerText();
 		resetAvailableMoves();
@@ -122,6 +227,7 @@ public class Board {
 	}
 	
 	private void handleForwardClick() {
+		// Updates board to reflect current state.
 		board = nextBoard;
 		boardLocked = false;
 		updateState();
@@ -137,8 +243,10 @@ public class Board {
 	}
 
 	private void handleBackClick() {
+		// Updates board to reflect previous state.
 		nextBoard = board;
 		board = prevBoard;
+		// Lock board so user cannot click. They must return to current state using forward button.
 		boardLocked = true;
 		updateState();
 		
@@ -153,7 +261,7 @@ public class Board {
 	}
 	
 	private void handleSquareClick(int positionIn) {
-		System.out.println(boardLocked);
+		// To make a move, the chosen square must be available and the board must not be locked.
 		 if (board[positionIn] == 'a' && boardLocked == false) {
 			logic.setPlayers(currentPlayer, nextPlayer);
 			logic.setBoard(board);
@@ -284,112 +392,6 @@ public class Board {
 		
 		Component[] component = textPanel.getComponents();
 		JLabel resultsLabel = (JLabel) component[3];
-		resultsLabel.setText("White: " + whiteDiscs + "\nBlack: " + blackDiscs);
-	}
-	
-	public void startUI() {
-		frame = new JFrame();
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLayout(new FlowLayout());
-		boardPanel = new JPanel(new GridLayout(8,8));
-		boardPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
-		boardPanel.setLayout(new GridLayout(8,8));
-		textPanel = new JPanel();
-		textPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 16, 16));
-		textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
-		
-		for (int i = 0; i < board.length; i++) {
-			JButton button = new JButton();
-			button.setPreferredSize(new Dimension(40, 40));
-			button.setBackground(Color.decode("#399E41"));
-			button.setOpaque(true);
-			button.setBorder(new LineBorder(Color.BLACK));
-			BufferedImage imageButton;
-			try {
-				if (board[i] == 'b') {
-					imageButton = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
-					button.setIcon(new ImageIcon(imageButton));
-				} else if (board[i] == 'w') {
-					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
-					button.setIcon(new ImageIcon(imageButton));
-				} else if (board[i] == 'a') {
-					button.setBackground(Color.decode("#FFFF93"));
-				}
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			int buttonPosition = i;
-			button.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					System.out.println(buttonPosition);
-					handleSquareClick(buttonPosition);
-				}
-			});
-			//button.setName(Integer.toString(i));
-			
-			boardPanel.add(button);
-		}
-		
-		// Current player text.
-		JLabel currentPlayerText = new JLabel("Current player: b");
-		currentPlayerText.setAlignmentX(Component.CENTER_ALIGNMENT);
-		textPanel.add(currentPlayerText);
-		
-		// History buttons.
-		JPanel historyButtonsPanel = new JPanel();
-		JButton backButton = new JButton("Back");
-		backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		backButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				handleBackClick();
-			}
-		});
-		JButton forwardButton = new JButton("Forward");
-		forwardButton.setEnabled(false);
-		forwardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		forwardButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				handleForwardClick();
-			}
-		});
-		historyButtonsPanel.add(backButton);
-		historyButtonsPanel.add(forwardButton);
-		
-		// AI move button.
-		JButton aiButton = new JButton("AI move");
-		aiButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		aiButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				runAISearch();
-			}
-		});
-		
-		// Display Results.
-		JLabel resultsLabel = new JLabel();
-		resultsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		
-		// Reset Button.
-		JButton resetButton = new JButton("Reset game");
-		resetButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		resetButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				handleResetGame();
-			}
-		});
-		
-		textPanel.add(aiButton);
-		textPanel.add(historyButtonsPanel);
-		textPanel.add(resultsLabel);
-		textPanel.add(resetButton);
-		// Add board and text panels to frame.
-		frame.add(boardPanel);
-		frame.add(textPanel);
-		
-		frame.setSize(450,650); 
-		frame.setMaximumSize(new Dimension(450, 650));
-		frame.setVisible(true);  
+		resultsLabel.setText("White: " + whiteDiscs + " Black: " + blackDiscs);
 	}
 }
-
-// TODO: scenario - one player flips all of opponent's discs without finishing game. 
