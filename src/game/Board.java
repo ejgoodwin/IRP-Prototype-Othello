@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -23,26 +20,9 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextPane;
 import javax.swing.border.LineBorder;
 
-import javafx.application.Application;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import mcts.MCTS;
-import minimax.AlphaBeta;
-import minimax.Minimax;
-
-public class Board extends Application {
+public class Board {
 	
 	JFrame frame;
 	JPanel boardPanel;
@@ -73,9 +53,6 @@ public class Board extends Application {
 	boolean boardLocked = false;
 	int prevPosition;
 	
-	// Make GridPane available outside the `start` function be able to select board squares when updating UI.
-	GridPane gridPane;
-	
 	// Logic contains rules of the game. Used to check available moves and make a move.
 	GameLogic logic = new GameLogic();
 	
@@ -100,144 +77,6 @@ public class Board extends Application {
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
 	String algorithmChoice = "mcts";
-	
-	@Override
-	public void start(Stage stage) throws Exception {
-		
-		try {
-			// Set title for stage.
-			stage.setTitle("IRP: Othello Prototype");
-			
-			// Create a grid pane.
-			gridPane = new GridPane();
-			gridPane.setPadding(new Insets(10,100,10,100));
-			
-			// Create items for gridPane.
-			Text title = new Text("Othello"); 
-			HBox titleHBox = new HBox();
-			titleHBox.setPadding(new Insets(10,0,10,0));
-			titleHBox.setAlignment(Pos.CENTER);
-			titleHBox.getChildren().addAll(title);
-			GridPane.setConstraints(titleHBox, 0, 0);
-			GridPane.setColumnSpan(titleHBox, 8);
-			
-			// Create board.
-			int rowCounter = 1;
-			int colCounter = 0;
-			for (int i = 0; i < board.length; i++) {
-				Button boardButton;
-				if (board[i] == 'b') {
-					Image imageOk = new Image(getClass().getResourceAsStream("../othello-disc-black.png"));
-					boardButton = new Button("", new ImageView(imageOk));
-				} else if (board[i] == 'w') {
-					Image imageOk = new Image(getClass().getResourceAsStream("../othello-disc-white.png"));
-					boardButton = new Button("", new ImageView(imageOk));
-				} else if (board[i] == 'a') {
-					Image imageAvailableSquare = new Image(getClass().getResourceAsStream("../available-square.png"));
-					boardButton = new Button("", new ImageView(imageAvailableSquare));
-				} else {
-					boardButton = new Button();
-				}
-				
-				// Convert integer counter to String in order to use it as board button ID.
-				String idString = Integer.toString(i);
-				boardButton.setId(idString);
-				
-				// Button sizing.
-				boardButton.setMinWidth(40);
-				boardButton.setMinHeight(40);
-				boardButton.setMaxWidth(40);
-				boardButton.setMaxHeight(40);
-				
-				// Store position in variable and use it in lambda function.
-				int boardPos = i;
-				boardButton.setOnAction(e -> handleSquareClick(boardPos));
-
-				// Add to pane
-				GridPane.setConstraints(boardButton, colCounter, rowCounter);
-				gridPane.getChildren().addAll(boardButton);
-				// Add CSS class
-				boardButton.getStyleClass().add("button");
-				
-				// End of row - add 1 to rowCounter and reset colCounter.
-				if (i % 8 == 7) {
-					rowCounter++;
-					colCounter = 0;
-				} else {
-					colCounter++;
-				}
-			}
-			
-			// Current player
-			Text currentPlayer = new Text("Current player: b"); 
-			HBox currentPlayerHBox = new HBox();
-			currentPlayerHBox.setPadding(new Insets(10,0,10,0));
-			currentPlayerHBox.setAlignment(Pos.CENTER);
-			currentPlayerHBox.getChildren().addAll(currentPlayer);
-			currentPlayer.setId("currenPlayerText");
-			GridPane.setConstraints(currentPlayerHBox, 0, 9);
-			GridPane.setColumnSpan(currentPlayerHBox, 8);
-			
-			// History buttons
-			Button backButton = new Button("Back"); 
-			backButton.setId("backButton");
-			backButton.setOnAction(e -> handleBackClick());
-			Button forwardButton = new Button("Forward");
-			forwardButton.setId("forwardButton");
-			forwardButton.setDisable(true);
-			forwardButton.setOnAction(e -> handleForwardClick());
-			HBox historyButtonsHBox = new HBox();
-			historyButtonsHBox.setPadding(new Insets(10,0,10,0));
-			historyButtonsHBox.setAlignment(Pos.CENTER);
-			historyButtonsHBox.getChildren().addAll(backButton, forwardButton);
-			GridPane.setConstraints(historyButtonsHBox, 0, 10);
-			GridPane.setColumnSpan(historyButtonsHBox, 8);
-			
-			// Start button runs AI move.
-			Button startButton = new Button("AI move"); 
-			startButton.setOnAction(e -> runAISearch());
-			startButton.getStyleClass().add("button-start");
-			HBox startButtonsHBox = new HBox();
-			startButtonsHBox.setPadding(new Insets(10,0,10,0));
-			startButtonsHBox.setAlignment(Pos.CENTER);
-			startButtonsHBox.getChildren().addAll(startButton);
-			GridPane.setConstraints(startButtonsHBox, 0, 11);
-			GridPane.setColumnSpan(startButtonsHBox, 8);
-			
-			// Results.
-			Text resultsText = new Text(); 
-			HBox resultsTextHBox = new HBox();
-			resultsTextHBox.setPadding(new Insets(10,0,10,0));
-			resultsTextHBox.setAlignment(Pos.CENTER);
-			resultsTextHBox.getChildren().addAll(resultsText);
-			resultsText.setId("resultsText");
-			GridPane.setConstraints(resultsTextHBox, 0, 12);
-			GridPane.setColumnSpan(resultsTextHBox, 8);
-			
-			// Reset button.
-			Button resetButton = new Button("Reset game"); 
-			resetButton.setOnAction(e -> handleResetGame());
-			resetButton.getStyleClass().add("button-reset");
-			HBox resetButtonsHBox = new HBox();
-			resetButtonsHBox.setPadding(new Insets(10,0,10,0));
-			resetButtonsHBox.setAlignment(Pos.CENTER);
-			resetButtonsHBox.getChildren().addAll(resetButton);
-			GridPane.setConstraints(resetButtonsHBox, 0, 13);
-			GridPane.setColumnSpan(resetButtonsHBox, 8);
-			
-			// Add items to the gridPane
-			gridPane.getChildren().addAll(titleHBox, currentPlayerHBox, historyButtonsHBox, startButtonsHBox, resultsTextHBox, resetButtonsHBox);
-
-			Group root = new Group(gridPane);
-			Scene scene = new Scene(root,520,700);
-			scene.getStylesheets().add(getClass().getResource("../application.css").toExternalForm());
-			stage.setScene(scene);
-			stage.show();
-			
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
 	
 	private void handleResetGame() {
 		board = boardStarter;

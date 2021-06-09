@@ -1,11 +1,8 @@
-package mcts;
+package game;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import game.GameLogic;
-import game.BoardEvaluation;
 
 public class NodeMCTS {
 	

@@ -1,10 +1,8 @@
-package minimax;
+package game;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import game.GameLogic;
 
 public class AlphaBeta {
 	

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import game.GameLogic;
-import minimax.Minimax;
+import game.Minimax;
 
 class MinimaxTest {
 	
