@@ -3,6 +3,9 @@ package game;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,6 +17,7 @@ import java.util.HashMap;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -42,6 +46,7 @@ public class Board extends Application {
 	
 	JFrame frame;
 	JPanel boardPanel;
+	JPanel textPanel;
 	
 	// Boards: current, previous and next.
 	// A starter board is kept ready to be assigned to `board` when the game is reset.
@@ -240,8 +245,10 @@ public class Board extends Application {
 		prevPosition = 0;
 		currentPlayer = 'b';
 		nextPlayer = 'w';
-		Text resultsText = (Text) gridPane.lookup("#resultsText");
-		resultsText.setText("");
+		
+		Component[] component = textPanel.getComponents();
+		JLabel resultsLabel = (JLabel) component[3];
+		resultsLabel.setText("");
 		updateBoard();
 	}
 	
@@ -269,7 +276,7 @@ public class Board extends Application {
 	
 	private void updateState() {
 		updatePlayers();
-		//updatePlayerText();
+		updatePlayerText();
 		resetAvailableMoves();
 		checkAvailableMoves();
 		updateBoard();
@@ -279,12 +286,15 @@ public class Board extends Application {
 		board = nextBoard;
 		boardLocked = false;
 		updateState();
+
+		Component[] component = textPanel.getComponents();	
+		JPanel historyPanel = (JPanel) component[2];
+		Component[] historyComponent = historyPanel.getComponents();
+		JButton forwardButton = (JButton) historyComponent[1];
+		JButton backButton = (JButton) historyComponent[0];
 		
-		Button backButton = (Button) gridPane.lookup("#backButton");
-		backButton.setDisable(false);
-		
-		Button forwardButton = (Button) gridPane.lookup("#forwardButton");
-		forwardButton.setDisable(true);
+		backButton.setEnabled(true);
+		forwardButton.setEnabled(false);
 	}
 
 	private void handleBackClick() {
@@ -293,11 +303,14 @@ public class Board extends Application {
 		boardLocked = true;
 		updateState();
 		
-		Button backButton = (Button) gridPane.lookup("#backButton");
-		backButton.setDisable(true);
+		Component[] component = textPanel.getComponents();	
+		JPanel historyPanel = (JPanel) component[2];
+		Component[] historyComponent = historyPanel.getComponents();
+		JButton forwardButton = (JButton) historyComponent[1];
+		JButton backButton = (JButton) historyComponent[0];
 		
-		Button forwardButton = (Button) gridPane.lookup("#forwardButton");
-		forwardButton.setDisable(false);
+		backButton.setEnabled(false);
+		forwardButton.setEnabled(true);
 	}
 	
 	private void handleSquareClick(int positionIn) {
@@ -357,26 +370,29 @@ public class Board extends Application {
 	}
 	 
 	private void updateBoard() {
-		System.out.println("test");
 		for (int i = 0; i < board.length; i++) {
 			Component[] component = boardPanel.getComponents();	
 			// First, if board is locked that means the history button has been clicked -> show the previous move.
 			try {
 				BufferedImage imageButton;
+				JButton boardButton = (JButton) component[i];
 				if (boardLocked && i == prevPosition) {
-					imageButton = ImageIO.read(getClass().getResource("../clicked-position.png"));
-					((AbstractButton) component[i]).setIcon(new ImageIcon(imageButton));
+					component[i].setBackground(Color.decode("#93FBFF"));
+					boardButton.setIcon(null);
 				} else if (board[i] == 'b') {
 					imageButton = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
-					((AbstractButton) component[i]).setIcon(new ImageIcon(imageButton));
+					boardButton.setIcon(new ImageIcon(imageButton));
+					component[i].setBackground(Color.decode("#399E41"));
 				} else if (board[i] == 'w') {
 					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
-					((AbstractButton) component[i]).setIcon(new ImageIcon(imageButton));
+					boardButton.setIcon(new ImageIcon(imageButton));
+					component[i].setBackground(Color.decode("#399E41"));
 				} else if (board[i] == 'a') {
-					imageButton = ImageIO.read(getClass().getResource("../available-square.png"));
-					((AbstractButton) component[i]).setIcon(new ImageIcon(imageButton));
+					component[i].setBackground(Color.decode("#FFFF93"));
+					boardButton.setIcon(null);
 				} else if (board[i] == '-') {
-					((AbstractButton) component[i]).setIcon(null);
+					boardButton.setIcon(null);
+					component[i].setBackground(Color.decode("#399E41"));
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -385,14 +401,14 @@ public class Board extends Application {
 	}
 
 	private void updatePlayerText() {
-		// Lookup the Text node with the CSS ID set earlier and set text to currentPlayer.
-		Text playerText = (Text) gridPane.lookup("#currenPlayerText");
+		// Lookup the Text node and set text to currentPlayer.
+		Component[] component = textPanel.getComponents();
+		JLabel playerText = (JLabel) component[0];
 		if (boardLocked) {
 			playerText.setText("Current player: " + prevPlayer);
 		} else {
 			playerText.setText("Current player: " + currentPlayer);
 		}
-
 	}
 
 	private void updatePlayers() {
@@ -426,21 +442,29 @@ public class Board extends Application {
 		int whiteDiscs = results.get("white");
 		int blackDiscs = results.get("black");
 		System.out.println(results);
-		Text resultsText = (Text) gridPane.lookup("#resultsText");
-		resultsText.setText("White: " + whiteDiscs + "\nBlack: " + blackDiscs);
+		
+		Component[] component = textPanel.getComponents();
+		JLabel resultsLabel = (JLabel) component[3];
+		resultsLabel.setText("White: " + whiteDiscs + "\nBlack: " + blackDiscs);
 	}
 	
 	public void startUI() {
 		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLayout(new GridLayout(2,1));
+		frame.setLayout(new FlowLayout());
 		boardPanel = new JPanel(new GridLayout(8,8));
 		boardPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 		boardPanel.setLayout(new GridLayout(8,8));
+		textPanel = new JPanel();
+		textPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 16, 16));
+		textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
 		
 		for (int i = 0; i < board.length; i++) {
 			JButton button = new JButton();
 			button.setPreferredSize(new Dimension(40, 40));
+			button.setBackground(Color.decode("#399E41"));
+			button.setOpaque(true);
+			button.setBorder(new LineBorder(Color.BLACK));
 			BufferedImage imageButton;
 			try {
 				if (board[i] == 'b') {
@@ -450,8 +474,7 @@ public class Board extends Application {
 					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
 					button.setIcon(new ImageIcon(imageButton));
 				} else if (board[i] == 'a') {
-					imageButton = ImageIO.read(getClass().getResource("../available-square.png"));
-					button.setIcon(new ImageIcon(imageButton));
+					button.setBackground(Color.decode("#FFFF93"));
 				}
 				
 			} catch (IOException e) {
@@ -464,16 +487,65 @@ public class Board extends Application {
 					handleSquareClick(buttonPosition);
 				}
 			});
-			button.setName(Integer.toString(i));
-			button.setBackground(Color.decode("#399E41"));
-			button.setOpaque(true);
-			button.setBorder(new LineBorder(Color.BLACK));
+			//button.setName(Integer.toString(i));
+			
 			boardPanel.add(button);
 		}
 		
+		// Current player text.
 		JLabel currentPlayerText = new JLabel("Current player: b");
+		currentPlayerText.setAlignmentX(Component.CENTER_ALIGNMENT);
+		textPanel.add(currentPlayerText);
+		
+		// History buttons.
+		JPanel historyButtonsPanel = new JPanel();
+		JButton backButton = new JButton("Back");
+		backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		backButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				handleBackClick();
+			}
+		});
+		JButton forwardButton = new JButton("Forward");
+		forwardButton.setEnabled(false);
+		forwardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		forwardButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				handleForwardClick();
+			}
+		});
+		historyButtonsPanel.add(backButton);
+		historyButtonsPanel.add(forwardButton);
+		
+		// AI move button.
+		JButton aiButton = new JButton("AI move");
+		aiButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		aiButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				runAISearch();
+			}
+		});
+		
+		// Display Results.
+		JLabel resultsLabel = new JLabel();
+		resultsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		// Reset Button.
+		JButton resetButton = new JButton("Reset game");
+		resetButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		resetButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				handleResetGame();
+			}
+		});
+		
+		textPanel.add(aiButton);
+		textPanel.add(historyButtonsPanel);
+		textPanel.add(resultsLabel);
+		textPanel.add(resetButton);
+		// Add board and text panels to frame.
 		frame.add(boardPanel);
-		frame.add(currentPlayerText);
+		frame.add(textPanel);
 		
 		frame.setSize(450,650); 
 		frame.setMaximumSize(new Dimension(450, 650));
