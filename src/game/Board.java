@@ -1,24 +1,33 @@
 package game;
 
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import javafx.application.Application;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import mcts.MCTS;
-import minimax.AlphaBeta;
-import minimax.Minimax;
 
-public class Board extends Application {
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
+
+public class Board {
+	
+	JFrame frame;
+	JPanel boardPanel;
+	JPanel textPanel;
 	
 	// Boards: current, previous and next.
 	// A starter board is kept ready to be assigned to `board` when the game is reset.
@@ -45,9 +54,6 @@ public class Board extends Application {
 	boolean boardLocked = false;
 	int prevPosition;
 	
-	// Make GridPane available outside the `start` function be able to select board squares when updating UI.
-	GridPane gridPane;
-	
 	// Logic contains rules of the game. Used to check available moves and make a move.
 	GameLogic logic = new GameLogic();
 	
@@ -67,148 +73,119 @@ public class Board extends Application {
 	
 	// Difficulty level data.
 	int controlLevel = 2;
-	int variableLevel = 4;
+	int variableLevel = 2;
 	
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
-	String algorithmChoice = "minimax";
+	String algorithmChoice = "mcts";
 	
-	@Override
-	public void start(Stage stage) throws Exception {
+	public void startUI() {
+		// Build UI using Java Swing.
+		frame = new JFrame("IRP Prototype: Othello");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLayout(new FlowLayout());
+		boardPanel = new JPanel(new GridLayout(8,8));
+		boardPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+		boardPanel.setLayout(new GridLayout(8,8));
+		textPanel = new JPanel();
+		textPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 16, 16));
+		textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
 		
-		try {
-			// Set title for stage.
-			stage.setTitle("IRP: Othello Prototype");
-			
-			// Create a grid pane.
-			gridPane = new GridPane();
-			gridPane.setPadding(new Insets(10,100,10,100));
-			
-			// Create items for gridPane.
-			Text title = new Text("Othello"); 
-			HBox titleHBox = new HBox();
-			titleHBox.setPadding(new Insets(10,0,10,0));
-			titleHBox.setAlignment(Pos.CENTER);
-			titleHBox.getChildren().addAll(title);
-			GridPane.setConstraints(titleHBox, 0, 0);
-			GridPane.setColumnSpan(titleHBox, 8);
-			
-			// Create board.
-			int rowCounter = 1;
-			int colCounter = 0;
-			for (int i = 0; i < board.length; i++) {
-				Button boardButton;
+		for (int i = 0; i < board.length; i++) {
+			JButton button = new JButton();
+			button.setPreferredSize(new Dimension(40, 40));
+			button.setBackground(Color.decode("#399E41"));
+			button.setOpaque(true);
+			button.setBorder(new LineBorder(Color.BLACK));
+			BufferedImage imageButton;
+			try {
 				if (board[i] == 'b') {
-					Image imageOk = new Image(getClass().getResourceAsStream("../othello-disc-black.png"));
-					boardButton = new Button("", new ImageView(imageOk));
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
+					button.setIcon(new ImageIcon(imageButton));
 				} else if (board[i] == 'w') {
-					Image imageOk = new Image(getClass().getResourceAsStream("../othello-disc-white.png"));
-					boardButton = new Button("", new ImageView(imageOk));
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
+					button.setIcon(new ImageIcon(imageButton));
 				} else if (board[i] == 'a') {
-					Image imageAvailableSquare = new Image(getClass().getResourceAsStream("../available-square.png"));
-					boardButton = new Button("", new ImageView(imageAvailableSquare));
-				} else {
-					boardButton = new Button();
+					button.setBackground(Color.decode("#F0E79C"));
 				}
 				
-				// Convert integer counter to String in order to use it as board button ID.
-				String idString = Integer.toString(i);
-				boardButton.setId(idString);
-				
-				// Button sizing.
-				boardButton.setMinWidth(40);
-				boardButton.setMinHeight(40);
-				boardButton.setMaxWidth(40);
-				boardButton.setMaxHeight(40);
-				
-				// Store position in variable and use it in lambda function.
-				int boardPos = i;
-				boardButton.setOnAction(e -> handleSquareClick(boardPos));
-
-				// Add to pane
-				GridPane.setConstraints(boardButton, colCounter, rowCounter);
-				gridPane.getChildren().addAll(boardButton);
-				// Add CSS class
-				boardButton.getStyleClass().add("button");
-				
-				// End of row - add 1 to rowCounter and reset colCounter.
-				if (i % 8 == 7) {
-					rowCounter++;
-					colCounter = 0;
-				} else {
-					colCounter++;
-				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-			
-			// Current player
-			Text currentPlayer = new Text("Current player: b"); 
-			HBox currentPlayerHBox = new HBox();
-			currentPlayerHBox.setPadding(new Insets(10,0,10,0));
-			currentPlayerHBox.setAlignment(Pos.CENTER);
-			currentPlayerHBox.getChildren().addAll(currentPlayer);
-			currentPlayer.setId("currenPlayerText");
-			GridPane.setConstraints(currentPlayerHBox, 0, 9);
-			GridPane.setColumnSpan(currentPlayerHBox, 8);
-			
-			// History buttons
-			Button backButton = new Button("Back"); 
-			backButton.setId("backButton");
-			backButton.setOnAction(e -> handleBackClick());
-			Button forwardButton = new Button("Forward");
-			forwardButton.setId("forwardButton");
-			forwardButton.setDisable(true);
-			forwardButton.setOnAction(e -> handleForwardClick());
-			HBox historyButtonsHBox = new HBox();
-			historyButtonsHBox.setPadding(new Insets(10,0,10,0));
-			historyButtonsHBox.setAlignment(Pos.CENTER);
-			historyButtonsHBox.getChildren().addAll(backButton, forwardButton);
-			GridPane.setConstraints(historyButtonsHBox, 0, 10);
-			GridPane.setColumnSpan(historyButtonsHBox, 8);
-			
-			// Start button runs AI move.
-			Button startButton = new Button("AI move"); 
-			startButton.setOnAction(e -> runAISearch());
-			startButton.getStyleClass().add("button-start");
-			HBox startButtonsHBox = new HBox();
-			startButtonsHBox.setPadding(new Insets(10,0,10,0));
-			startButtonsHBox.setAlignment(Pos.CENTER);
-			startButtonsHBox.getChildren().addAll(startButton);
-			GridPane.setConstraints(startButtonsHBox, 0, 11);
-			GridPane.setColumnSpan(startButtonsHBox, 8);
-			
-			// Results.
-			Text resultsText = new Text(); 
-			HBox resultsTextHBox = new HBox();
-			resultsTextHBox.setPadding(new Insets(10,0,10,0));
-			resultsTextHBox.setAlignment(Pos.CENTER);
-			resultsTextHBox.getChildren().addAll(resultsText);
-			resultsText.setId("resultsText");
-			GridPane.setConstraints(resultsTextHBox, 0, 12);
-			GridPane.setColumnSpan(resultsTextHBox, 8);
-			
-			// Reset button.
-			Button resetButton = new Button("Reset game"); 
-			resetButton.setOnAction(e -> handleResetGame());
-			resetButton.getStyleClass().add("button-reset");
-			HBox resetButtonsHBox = new HBox();
-			resetButtonsHBox.setPadding(new Insets(10,0,10,0));
-			resetButtonsHBox.setAlignment(Pos.CENTER);
-			resetButtonsHBox.getChildren().addAll(resetButton);
-			GridPane.setConstraints(resetButtonsHBox, 0, 13);
-			GridPane.setColumnSpan(resetButtonsHBox, 8);
-			
-			// Add items to the gridPane
-			gridPane.getChildren().addAll(titleHBox, currentPlayerHBox, historyButtonsHBox, startButtonsHBox, resultsTextHBox, resetButtonsHBox);
-
-			Group root = new Group(gridPane);
-			Scene scene = new Scene(root,520,700);
-			scene.getStylesheets().add(getClass().getResource("../application.css").toExternalForm());
-			stage.setScene(scene);
-			stage.show();
-			
-		} catch(Exception e) {
-			e.printStackTrace();
+			int buttonPosition = i;
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					System.out.println(buttonPosition);
+					handleSquareClick(buttonPosition);
+				}
+			});
+			boardPanel.add(button);
 		}
+		
+		// Current player text.
+		JPanel currentPlayerPanel = new JPanel();
+		currentPlayerPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 16, 16));
+		JLabel currentPlayerText = new JLabel("Current player: b");
+		currentPlayerText.setAlignmentX(Component.CENTER_ALIGNMENT);
+		currentPlayerPanel.add(currentPlayerText);
+		textPanel.add(currentPlayerPanel);
+		
+		// History buttons.
+		JPanel historyButtonsPanel = new JPanel();
+		JButton backButton = new JButton("Back");
+		backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		backButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				handleBackClick();
+			}
+		});
+		JButton forwardButton = new JButton("Forward");
+		forwardButton.setEnabled(false);
+		forwardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		forwardButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				handleForwardClick();
+			}
+		});
+		historyButtonsPanel.add(backButton);
+		historyButtonsPanel.add(forwardButton);
+		
+		// AI move button.
+		JButton aiButton = new JButton("AI move");
+		aiButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		aiButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				runAISearch();
+			}
+		});
+		
+		// Display Results.
+		JLabel resultsLabel = new JLabel(" ");
+		resultsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		// Reset Button.
+		JPanel resetButtonPanel = new JPanel();
+		resetButtonPanel.setBorder(BorderFactory.createEmptyBorder(32, 16, 16, 16));
+		JButton resetButton = new JButton("Reset game");
+		resetButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		resetButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				handleResetGame();
+			}
+		});
+		resetButtonPanel.add(resetButton);
+		
+		textPanel.add(aiButton);
+		textPanel.add(historyButtonsPanel);
+		textPanel.add(resultsLabel);
+		textPanel.add(resetButtonPanel);
+		// Add board and text panels to frame.
+		frame.add(boardPanel);
+		frame.add(textPanel);
+		
+		frame.setSize(450,650); 
+		frame.setMaximumSize(new Dimension(450, 650));
+		frame.setVisible(true);  
 	}
 	
 	private void handleResetGame() {
@@ -217,12 +194,17 @@ public class Board extends Application {
 		prevPosition = 0;
 		currentPlayer = 'b';
 		nextPlayer = 'w';
-		Text resultsText = (Text) gridPane.lookup("#resultsText");
-		resultsText.setText("");
+		
+		JPanel playerTextPanel = (JPanel) textPanel.getComponent(0);
+		JLabel playerText = (JLabel) playerTextPanel.getComponent(0);
+		playerText.setText("Current player: " + currentPlayer);
+		
+		JLabel resultsLabel = (JLabel) textPanel.getComponent(3);
+		resultsLabel.setText("");
 		updateBoard();
 	}
 	
-	// Create array of available moves.
+	// Create array of available moves and update the board to reflect state with available moves.
 	private void checkAvailableMoves() {
 		int position;
 		logic.setPlayers(currentPlayer, nextPlayer);
@@ -245,6 +227,7 @@ public class Board extends Application {
 	}
 	
 	private void updateState() {
+		// Update players, player text, available moves, and board.
 		updatePlayers();
 		updatePlayerText();
 		resetAvailableMoves();
@@ -253,32 +236,37 @@ public class Board extends Application {
 	}
 	
 	private void handleForwardClick() {
+		// Updates board to reflect current state.
 		board = nextBoard;
 		boardLocked = false;
 		updateState();
+	
+		JPanel historyPanel = (JPanel) textPanel.getComponent(2);
+		JButton forwardButton = (JButton) historyPanel.getComponent(1);
+		JButton backButton = (JButton) historyPanel.getComponent(0);
 		
-		Button backButton = (Button) gridPane.lookup("#backButton");
-		backButton.setDisable(false);
-		
-		Button forwardButton = (Button) gridPane.lookup("#forwardButton");
-		forwardButton.setDisable(true);
+		backButton.setEnabled(true);
+		forwardButton.setEnabled(false);
 	}
 
 	private void handleBackClick() {
+		// Updates board to reflect previous state.
 		nextBoard = board;
 		board = prevBoard;
+		// Lock board so user cannot click. They must return to current state using forward button.
 		boardLocked = true;
 		updateState();
+			
+		JPanel historyPanel = (JPanel) textPanel.getComponent(2);
+		JButton forwardButton = (JButton) historyPanel.getComponent(1);
+		JButton backButton = (JButton) historyPanel.getComponent(0);
 		
-		Button backButton = (Button) gridPane.lookup("#backButton");
-		backButton.setDisable(true);
-		
-		Button forwardButton = (Button) gridPane.lookup("#forwardButton");
-		forwardButton.setDisable(false);
+		backButton.setEnabled(false);
+		forwardButton.setEnabled(true);
 	}
 	
 	private void handleSquareClick(int positionIn) {
-		System.out.println(boardLocked);
+		// To make a move, the chosen square must be available and the board must not be locked.
 		 if (board[positionIn] == 'a' && boardLocked == false) {
 			logic.setPlayers(currentPlayer, nextPlayer);
 			logic.setBoard(board);
@@ -334,38 +322,44 @@ public class Board extends Application {
 	}
 	 
 	private void updateBoard() {
-		for (int i = 0; i < board.length; i++) {
-			String buttonID = Integer.toString(i);
-			Button boardButtonSelect = (Button) gridPane.lookup("#"+buttonID);
+		for (int i = 0; i < board.length; i++) {	
 			// First, if board is locked that means the history button has been clicked -> show the previous move.
-			if (boardLocked && i == prevPosition) {
-				Image imageClickedSquare = new Image(getClass().getResourceAsStream("../clicked-position.png"));
-				boardButtonSelect.setGraphic(new ImageView(imageClickedSquare));
-			// If the board is not locked, assign images according to chars in board array.
-			} else if (board[i] == 'b') {
-				Image imageBlackDisc = new Image(getClass().getResourceAsStream("../othello-disc-black.png"));
-				boardButtonSelect.setGraphic(new ImageView(imageBlackDisc));
-			} else if (board[i] == 'w') {
-				Image imageWhiteDisc = new Image(getClass().getResourceAsStream("../othello-disc-white.png"));
-				boardButtonSelect.setGraphic(new ImageView(imageWhiteDisc));
-			} else if (board[i] == 'a') {
-				Image imageAvailableSquare = new Image(getClass().getResourceAsStream("../available-square.png"));
-				boardButtonSelect.setGraphic(new ImageView(imageAvailableSquare));
-			} else if (board[i] == '-') {
-				boardButtonSelect.setGraphic(null);
+			try {
+				BufferedImage imageButton;
+				JButton boardButton = (JButton) boardPanel.getComponent(i);
+				if (boardLocked && i == prevPosition) {
+					boardButton.setBackground(Color.decode("#9CF0F0"));
+					boardButton.setIcon(null);
+				} else if (board[i] == 'b') {
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
+					boardButton.setIcon(new ImageIcon(imageButton));
+					boardButton.setBackground(Color.decode("#399E41"));
+				} else if (board[i] == 'w') {
+					imageButton = ImageIO.read(getClass().getResource("../othello-disc-white.png"));
+					boardButton.setIcon(new ImageIcon(imageButton));
+					boardButton.setBackground(Color.decode("#399E41"));
+				} else if (board[i] == 'a') {
+					boardButton.setBackground(Color.decode("#F0E79C"));
+					boardButton.setIcon(null);
+				} else if (board[i] == '-') {
+					boardButton.setIcon(null);
+					boardButton.setBackground(Color.decode("#399E41"));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
 
 	private void updatePlayerText() {
-		// Lookup the Text node with the CSS ID set earlier and set text to currentPlayer.
-		Text playerText = (Text) gridPane.lookup("#currenPlayerText");
+		// Lookup the Text node and set text to currentPlayer.
+		JPanel playerTextPanel = (JPanel) textPanel.getComponent(0);
+		JLabel playerText = (JLabel) playerTextPanel.getComponent(0);
 		if (boardLocked) {
 			playerText.setText("Current player: " + prevPlayer);
 		} else {
 			playerText.setText("Current player: " + currentPlayer);
 		}
-
 	}
 
 	private void updatePlayers() {
@@ -399,17 +393,8 @@ public class Board extends Application {
 		int whiteDiscs = results.get("white");
 		int blackDiscs = results.get("black");
 		System.out.println(results);
-		Text resultsText = (Text) gridPane.lookup("#resultsText");
-		resultsText.setText("White: " + whiteDiscs + "\nBlack: " + blackDiscs);
+		
+		JLabel resultsLabel = (JLabel) textPanel.getComponent(3);
+		resultsLabel.setText("Black: " + blackDiscs + " White: " + whiteDiscs);
 	}
-	
-	public static void main(String[] args) {
-
-		// Launch JavaFX UI.
-		launch(args);
-
-	}
-
 }
-
-// TODO: scenario - one player flips all of opponent's discs without finishing game. 

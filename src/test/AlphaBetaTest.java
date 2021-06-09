@@ -7,8 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import game.AlphaBeta;
 import game.GameLogic;
-import minimax.AlphaBeta;
 
 class AlphaBetaTest {
 	

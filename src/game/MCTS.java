@@ -1,15 +1,14 @@
-package mcts;
+package game;
+
 
 import java.util.List;
 import java.util.Random;
-
-// Good reference: https://towardsdatascience.com/monte-carlo-tree-search-in-reinforcement-learning-b97d3e743d0f
 
 public class MCTS {
 	
 	public int findNextMove(char[] boardIn, char currentPlayer, char nextPlayer, int level) {
 		long start = System.currentTimeMillis();
-        double end = start + 60 * 2;
+        double end = start + 60 * level;
         
         // Create a new tree.
         Tree tree = new Tree();
@@ -56,17 +55,15 @@ public class MCTS {
 		
 		// Run until a leaf node is found.
 		while (node.getChildArray().size() > 0) {
-			node = findBestNodeUTC(node);
+			node = selectionPolicyUTC(node);
 		}
 		return node;
 	}
 	
 	private NodeMCTS expandNode(NodeMCTS node) {
-		System.out.println("EXPAND");
 		// Use promising node, expand again to create a child that will be used in simulation.
 		node.createChildArray();
 		List<NodeMCTS> children = node.getChildArray();
-		System.out.println(children);
 		
 		for (int i = 0; i < children.size(); i++) {
 			children.get(i).setParent(node);
@@ -82,7 +79,6 @@ public class MCTS {
 	}
 	
 	private NodeMCTS simulationPlayout(NodeMCTS node) {
-		System.out.println("SIMULATION");
 		node.createChildArray();
 		List<NodeMCTS> children = node.getChildArray();
 		while (children.size() > 0) {
@@ -103,7 +99,7 @@ public class MCTS {
 		char aiWin = nodeToExplore.getWinState();
 		int score;
 		if (aiWin == currentPlayer) {
-			score = 10;
+			score = 1;
 		} else {
 			score = 0;
 		}
@@ -115,7 +111,7 @@ public class MCTS {
 		}
 	}
 	
-	private NodeMCTS findBestNodeUTC(NodeMCTS node) {
+	private NodeMCTS selectionPolicyUTC(NodeMCTS node) {
 		int parentVisit = node.getVisitCount();
 	    
 	    // Create child array.

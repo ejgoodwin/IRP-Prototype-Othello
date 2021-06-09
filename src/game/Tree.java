@@ -1,4 +1,5 @@
-package mcts;
+package game;
+
 
 public class Tree {
 	NodeMCTS root = new NodeMCTS();
