@@ -45,10 +45,8 @@ public class AlphaBeta {
 	
 	private Map<String, Integer> alphaBeta(char[] boardMinMAx, char player, int depth, int alpha, int beta) {
 		counter++;
-		//count += 1;
 		ArrayList<Integer> availSquares = evaluateBoard(boardMinMAx, player);
 		// If end of depth, see who has the best score.
-		//System.out.println(availSquares);
 		if (depth == level || availSquares.size() < 1) {
 			int score = boardValue(player, boardMinMAx, availSquares.size());
 			Map<String, Integer> scoreReturn = new HashMap<>();
@@ -61,16 +59,13 @@ public class AlphaBeta {
 	 		bestScore.put("score", -1000);
 			// loop through available squares.
 			for (int i = 0; i < availSquares.size(); i++) {
-				// assign player to the current square.
-				//boardMinMAx[availSquares.get(i)] = player;
-				//System.out.println(boardMinMAx);
+				// Update board state to reflect this chosen move.
 				logic.setPosition(availSquares.get(i));
 				logic.setPlayers(currentPlayer, nextPlayer);
 				logic.setBoard(boardMinMAx);
 				logic.checkNextItem();
 				char[] newBoard = logic.getNewBoard();
-				//System.out.println(newBoard);
-				// store result of minimax
+				// Store result of alphaBeta.
 				Map<String, Integer> result = alphaBeta(newBoard, nextPlayer, depth+1, alpha, beta);
 				// Find the MAXIMUM score
 				if (result.get("score").doubleValue() > bestScore.get("score").doubleValue()) {	
@@ -78,21 +73,16 @@ public class AlphaBeta {
 					bestScore.put("index", availSquares.get(i));
 				}
 				alpha = result.get("score");
-				// Find alpha value
+				// Find alpha value.
 				if (alpha >= beta) {
 					break;
 				}
-				// Reset current square to null 
-				// -> next iteration needs to see state of board prior to that potential move
-				//boardMinMAx[availSquares.get(i)] = '-';
 			}
-			// console.log(bestScore);
 			return bestScore;
 		} else {
 			Map<String, Integer> bestScore = new HashMap<>();
 			bestScore.put("score", 1000);
 			for (int i = 0; i < availSquares.size(); i++) {
-				//boardMinMAx[availSquares.get(i)] = player;
 				logic.setPosition(availSquares.get(i));
 				logic.setPlayers(nextPlayer, currentPlayer);
 				logic.setBoard(boardMinMAx);
@@ -109,38 +99,30 @@ public class AlphaBeta {
 				if (alpha >= beta) {
 					break;
 				}
-				//boardMinMAx[availSquares.get(i)] = '-';
 			}
-			// console.log(bestScore);
 			return bestScore;
 		}
 	}
 	
 	private int boardValue(char player, char[] boardMinMAx, int availableSquaresNum) {
 		int score = 0;
-		// Compare player's squares against weighted board.
+		// Compare player's squares against weighted board and test for mobility with amount of available squares.
 		for (int i = 0; i < weightedBoard.length; i++) {
 			if (boardMinMAx[i] == player) {
 				if (player == currentPlayer) {
 					score += weightedBoard[i];
+					score += availableSquaresNum;
 				} else {
 					score -= weightedBoard[i];
+					score -= availableSquaresNum;
 				}
 			}
-		}
-		// Test for mobility.
-		if (player == currentPlayer) {
-			score += availableSquaresNum;
-		} else {
-			// Should these be + or - ???
-			score -= availableSquaresNum;
 		}
 		return score;
 	}
 
 	private ArrayList<Integer> evaluateBoard(char[] boardEval, char player) {
 		ArrayList<Integer> availSquares = new ArrayList<Integer>();
-		//char[] boardEvalClone = boardEval.clone();
 		if (player == 'w') {
 			logic.setPlayers('w', 'b');
 		} else {
@@ -155,14 +137,12 @@ public class AlphaBeta {
 				logic.setPosition(position);
 				boolean successfulMove = logic.checkNextItem();
 				if (successfulMove) {
-					//System.out.println(i);
 					// This move is available -> add it to the array.
 					availSquares.add(i);
 				}
 			}
 		}
 		// Return an array of available squares (empty if non available).
-		//System.out.println(availSquares);
 		return availSquares;
 	}
 }
