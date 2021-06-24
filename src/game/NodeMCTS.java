@@ -88,7 +88,7 @@ public class NodeMCTS {
 		int position;
 		NodeMCTS parent = getParent();
 		
-		// If the node has a parent, players should be set to the opposite of the parents (current is next, next is current).
+		// If the node has a parent, players should be set to the opposite of the parents' players (current is next, next is current).
 		// Else means the node does not have parents, it's the root, so players should be set to its own current and next.  
 		if (parent != null) {
 			logic.setPlayers(parent.getNextPlayer(), parent.getCurrentPlayer());

@@ -10,15 +10,11 @@ public class MCTS {
 		long start = System.currentTimeMillis();
         double end = start + 60 * level;
         
-        // Create a new tree.
-        Tree tree = new Tree();
-        // Get the root of that tree.
-        NodeMCTS rootNode = tree.getRoot();
-        // Set players of the root node according to the current state (passed into this function).
+        // Create the root node and set the players and board state.
+        NodeMCTS rootNode = new NodeMCTS();
         rootNode.setPlayers(currentPlayer, nextPlayer);
-        // Set board state of root node.
         rootNode.setBoardState(boardIn);
-		// Run while there's time left, which is determined by the difficulty level.
+        
 		while (System.currentTimeMillis() < end) {
 			// Selection - select a promising node from the rootNode.
 			NodeMCTS promisingNode = selectPromisingNode(rootNode);
@@ -34,7 +30,6 @@ public class MCTS {
 		// Get the root node's child that has the highest score.
 		NodeMCTS winnerNode = rootNode.getChildMaxScore();
 		System.out.println("pos: " + winnerNode.getPosition() + " score: " + winnerNode.getScore());
-		// Return the position of the highest scoring node.
 		return winnerNode.getPosition();
 	}
 	
@@ -42,7 +37,6 @@ public class MCTS {
 		// Successively select child nodes until a leaf node has been found.
 		NodeMCTS node = rootNodeIn;
 		List<NodeMCTS> children = node.getChildArray();
-		// If root node does not have children yet, create a child array.
 		if (children.size() == 0) {
 			node.createChildArray();
 			children = node.getChildArray();
@@ -53,7 +47,6 @@ public class MCTS {
 			}
 		}
 		
-		// Run until a leaf node is found.
 		while (node.getChildArray().size() > 0) {
 			node = selectionPolicyUTC(node);
 		}
