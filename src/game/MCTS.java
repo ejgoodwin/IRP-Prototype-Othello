@@ -123,7 +123,7 @@ public class MCTS {
 	    		return children.get(i);
 	    	}
 	    	
-	    	utcValueTemp = (nodeWinScore / nodeVisit) +  1.41*Math.sqrt(Math.log(totalVisit) / nodeVisit);
+	    	utcValueTemp = (nodeWinScore / nodeVisit) +  Math.sqrt(2)*Math.sqrt(Math.log(totalVisit) / nodeVisit);
 	    	if (utcValueTemp > utcValue) {
 	    		bestNodeUTC = children.get(i);
 	    		utcValue = utcValueTemp;
