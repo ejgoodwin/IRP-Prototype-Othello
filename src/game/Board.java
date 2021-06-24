@@ -328,7 +328,7 @@ public class Board {
 				BufferedImage imageButton;
 				JButton boardButton = (JButton) boardPanel.getComponent(i);
 				if (boardLocked && i == prevPosition) {
-					boardButton.setBackground(Color.decode("#9CF0F0"));
+					boardButton.setBackground(Color.decode("#8CEBD2"));
 					boardButton.setIcon(null);
 				} else if (board[i] == 'b') {
 					imageButton = ImageIO.read(getClass().getResource("../othello-disc-black.png"));
@@ -395,6 +395,6 @@ public class Board {
 		System.out.println(results);
 		
 		JLabel resultsLabel = (JLabel) textPanel.getComponent(3);
-		resultsLabel.setText("Black: " + blackDiscs + " White: " + whiteDiscs);
+		resultsLabel.setText("Results: Black " + blackDiscs + " |  White " + whiteDiscs);
 	}
 }
