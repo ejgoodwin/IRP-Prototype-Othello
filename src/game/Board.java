@@ -72,8 +72,8 @@ public class Board {
 	MCTS mcts = new MCTS();
 	
 	// Difficulty level data.
-	int controlLevel = 2;
-	int variableLevel = 2;
+	int controlLevel = 1;
+	int variableLevel = 1;
 	
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
@@ -278,9 +278,7 @@ public class Board {
 				prevPosition = positionIn;
 				prevPlayer = currentPlayer;
 				updateState();
-				if (availableSquares.size() == 0) {
-					checkWinner();
-				}
+				checkWinner();
 			}
 		}
 	}
@@ -316,9 +314,7 @@ public class Board {
 		prevPosition = positionAI;
 		prevPlayer = currentPlayer;
 		updateState();
-		if (availableSquares.size() == 0) {
-			checkWinner();
-		}
+		checkWinner();
 	}
 	 
 	private void updateBoard() {
@@ -382,19 +378,35 @@ public class Board {
 	
 	private void checkWinner() {
 		// If no available moves, check to see if game is over.
-		for (int i = 0; i < board.length; i++) {
-			if (board[i] == '-') {
-				// If there is an empty square but no available moves -> change to next player.
-				updateState();
-				return;
-			}
-		}
-		results = boardEval.returnResults(board);
-		int whiteDiscs = results.get("white");
-		int blackDiscs = results.get("black");
-		System.out.println(results);
-		
 		JLabel resultsLabel = (JLabel) textPanel.getComponent(3);
-		resultsLabel.setText("Results: Black " + blackDiscs + " |  White " + whiteDiscs);
+		if (availableSquares.size() == 0) {
+			for (int i = 0; i < board.length; i++) {
+				if (board[i] == '-') {
+					// If there is an empty square but no available moves -> change to next player.
+					// Set a notification to tell user they are skipping a turn.
+					resultsLabel.setForeground(Color.RED);
+					resultsLabel.setText("Skip a turn");
+					updateState();
+					return;
+				}
+			}
+			results = boardEval.returnResults(board);
+			String resultsText;
+			int whiteDiscs = results.get("white");
+			int blackDiscs = results.get("black");
+			System.out.println(results);
+			
+			if (whiteDiscs > blackDiscs) {
+				resultsText = "Results: White " + whiteDiscs + " |  Black " + blackDiscs;
+			} else {
+				resultsText = "Results: Black " + blackDiscs + " |  White " + whiteDiscs;
+			}
+			
+			resultsLabel.setForeground(Color.decode("#268914"));
+			resultsLabel.setText(resultsText);
+		} else {
+			// Ensure results is cleared from any skip notification.  
+			resultsLabel.setText("");
+		}
 	}
 }

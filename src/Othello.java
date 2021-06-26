@@ -1,6 +1,6 @@
 import game.Board;
 
-public class Main {
+public class Othello {
 
 	public static void main(String[] args) {
 		

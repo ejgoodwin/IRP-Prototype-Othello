@@ -7,8 +7,8 @@ import java.util.Random;
 public class MCTS {
 	
 	public int findNextMove(char[] boardIn, char currentPlayer, char nextPlayer, int level) {
-		long start = System.currentTimeMillis();
-        double end = start + 60 * level;
+		// Use `level` to set the amount of time to run the search.
+		double end = System.currentTimeMillis() + (level * 250);
         
         // Create the root node and set the players and board state.
         NodeMCTS rootNode = new NodeMCTS();
@@ -96,11 +96,10 @@ public class MCTS {
 		} else {
 			score = 0;
 		}
-		NodeMCTS tempNode = nodeToExplore;
-		while (tempNode != null) {
-			tempNode.setScore(score);
-			tempNode.incrementVisitCount();
-			tempNode = tempNode.getParent();
+		while (nodeToExplore != null) {
+			nodeToExplore.setScore(score);
+			nodeToExplore.incrementVisitCount();
+			nodeToExplore = nodeToExplore.getParent();
 		}
 	}
 	
