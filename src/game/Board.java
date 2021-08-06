@@ -72,12 +72,16 @@ public class Board {
 	MCTS mcts = new MCTS();
 	
 	// Difficulty level data.
-	int controlLevel = 1;
-	int variableLevel = 1;
+	int controlLevel = 2;
+	int variableLevel = 8;
+	
+	// Previous winner.
+	char prevWinner;
+	char variablePlayer = 'b';
 	
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
-	String algorithmChoice = "mcts";
+	String algorithmChoice = "alpha-beta";
 	
 	public void startUI() {
 		// Build UI using Java Swing.
@@ -286,23 +290,35 @@ public class Board {
 	private void runAISearch() {
 		char[] boardEvalClone = board.clone();
 		int level;
-		if (currentPlayer == 'b') {
-			level = controlLevel;
-		} else {
+		if (currentPlayer == variablePlayer) {
 			level = variableLevel;
+		} else {
+			level = controlLevel;
 		}
 		// Run correct algorithm.
 		int positionAI = -1;
 		if (algorithmChoice == "minimax") {
 			minimaxSearch.setBoard(board.clone());
 			minimaxSearch.setPlayers(currentPlayer, nextPlayer);
+			double start = System.currentTimeMillis();
 			positionAI = minimaxSearch.runMinimax(level);
+			double end = System.currentTimeMillis();
+			System.out.print("Decision time: ");
+			System.out.println(end-start);
 		} else if (algorithmChoice == "alpha-beta") {
 			alphaBeta.setBoard(board.clone());
 			alphaBeta.setPlayers(currentPlayer, nextPlayer);
+			double start = System.currentTimeMillis();
 			positionAI = alphaBeta.runAlphaBeta(level);
+			double end = System.currentTimeMillis();
+			System.out.print("Alpha-beta | Decision time: ");
+			System.out.println(end-start);
 		} else if (algorithmChoice == "mcts") {
+			double start = System.currentTimeMillis();
 			positionAI = mcts.findNextMove(boardEvalClone, currentPlayer, nextPlayer, level);
+			double end = System.currentTimeMillis();
+			System.out.print("MCTS | Decision time: ");
+			System.out.println(end-start);
 		}
 		
 		logic.setPlayers(currentPlayer, nextPlayer);
@@ -398,12 +414,24 @@ public class Board {
 			
 			if (whiteDiscs > blackDiscs) {
 				resultsText = "Results: White " + whiteDiscs + " |  Black " + blackDiscs;
+				prevWinner = 'w';
 			} else {
 				resultsText = "Results: Black " + blackDiscs + " |  White " + whiteDiscs;
+				prevWinner = 'b';
 			}
 			
 			resultsLabel.setForeground(Color.decode("#268914"));
 			resultsLabel.setText(resultsText);
+			
+			if (prevWinner == variablePlayer) {
+				if (variableLevel == 2) {
+					variableLevel-=1;
+				} else if (variableLevel > 2) {
+					variableLevel-=2;
+				}
+			} else {
+				variableLevel+=2;
+			}
 		} else {
 			// Ensure results is cleared from any skip notification.  
 			resultsLabel.setText("");

@@ -39,7 +39,7 @@ public class AlphaBeta {
 		level = levelIn;
 		Map<String, Integer> minimaxMap = alphaBeta(board, currentPlayer, 0, -1000000, 1000000);
 		int chosenPosition = minimaxMap.get("index"); 
-		System.out.println("Counter " + counter);
+		System.out.println("Current player: " + currentPlayer + "| Nodes: " + counter + " | Level: " + level);
 		return chosenPosition;
 	}
 	

@@ -40,7 +40,7 @@ public class Minimax {
 		level = levelIn;
 		Map<String, Integer> minimaxMap = minimaxSearch(board, currentPlayer, 0);
 		int chosenPosition = minimaxMap.get("index"); 
-		System.out.println("Counter " + counter);
+		System.out.println("Current player: " + currentPlayer + "| Nodes: " + counter);
 		return chosenPosition;
 	}
 	

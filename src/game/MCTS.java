@@ -6,14 +6,19 @@ import java.util.Random;
 
 public class MCTS {
 	
+	int nodeCounter = 0;
+	
 	public int findNextMove(char[] boardIn, char currentPlayer, char nextPlayer, int level) {
 		// Use `level` to set the amount of time to run the search.
-		double end = System.currentTimeMillis() + (level * 250);
+		double end = System.currentTimeMillis() + 9;
+		this.nodeCounter = 0;
         
         // Create the root node and set the players and board state.
         NodeMCTS rootNode = new NodeMCTS();
         rootNode.setPlayers(currentPlayer, nextPlayer);
         rootNode.setBoardState(boardIn);
+        // Increment node counter.
+        this.nodeCounter++;
         
 		while (System.currentTimeMillis() < end) {
 			// Selection - select a promising node from the rootNode.
@@ -29,7 +34,8 @@ public class MCTS {
 		}
 		// Get the root node's child that has the highest score.
 		NodeMCTS winnerNode = rootNode.getChildMaxScore();
-		System.out.println("pos: " + winnerNode.getPosition() + " score: " + winnerNode.getScore());
+		//System.out.println("pos: " + winnerNode.getPosition() + " score: " + winnerNode.getScore());
+		System.out.println("Current player: " + currentPlayer + "| Nodes: " + this.nodeCounter);
 		return winnerNode.getPosition();
 	}
 	
@@ -40,6 +46,8 @@ public class MCTS {
 		if (children.size() == 0) {
 			node.createChildArray();
 			children = node.getChildArray();
+			// Increment node counter.
+			this.nodeCounter += children.size();
 			// Set parent and players for child nodes.
 			for (int i = 0; i < children.size(); i++) {
 				children.get(i).setParent(rootNodeIn);
@@ -67,6 +75,8 @@ public class MCTS {
 			Random random = new Random();
 		    int randomNode = random.nextInt(children.size());
 		    node = children.get(randomNode);
+		    // Increment node counter.
+			this.nodeCounter++;
 		}
 		return node;
 	}
@@ -74,6 +84,8 @@ public class MCTS {
 	private NodeMCTS simulationPlayout(NodeMCTS node) {
 		node.createChildArray();
 		List<NodeMCTS> children = node.getChildArray();
+		// Increment node counter.
+		this.nodeCounter += children.size();
 		while (children.size() > 0) {
 			for (int i = 0; i < children.size(); i++) {
 				children.get(i).setParent(node);
