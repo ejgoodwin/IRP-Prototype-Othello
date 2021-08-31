@@ -17,4 +17,4 @@ If one player is unable to take a move, i.e. there are no available squares, the
 ## Run the Program
 * Open terminal
 * Navigate to the bin directory in the project files
-* Run java Othello
+* Run `java Othello`
