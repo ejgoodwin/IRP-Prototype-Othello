@@ -72,8 +72,8 @@ public class Board {
 	MCTS mcts = new MCTS();
 	
 	// Difficulty level data.
-	int controlLevel = 2;
-	int variableLevel = 8;
+	int controlLevel = 3;
+	int variableLevel = 3;
 	
 	// Previous winner.
 	char prevWinner;
