@@ -10,7 +10,8 @@ public class MCTS {
 	
 	public int findNextMove(char[] boardIn, char currentPlayer, char nextPlayer, int level) {
 		// Use `level` to set the amount of time to run the search.
-		double end = System.currentTimeMillis() + 9;
+		double start =  System.currentTimeMillis();
+		double end = start + level * 100;
 		this.nodeCounter = 0;
         
         // Create the root node and set the players and board state.
@@ -34,7 +35,7 @@ public class MCTS {
 		}
 		// Get the root node's child that has the highest score.
 		NodeMCTS winnerNode = rootNode.getChildMaxScore();
-		//System.out.println("pos: " + winnerNode.getPosition() + " score: " + winnerNode.getScore());
+		System.out.println("pos: " + winnerNode.getPosition() + " score: " + winnerNode.getScore());
 		System.out.println("Current player: " + currentPlayer + "| Nodes: " + this.nodeCounter);
 		return winnerNode.getPosition();
 	}
