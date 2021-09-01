@@ -130,7 +130,7 @@ public class NodeMCTS {
 		NodeMCTS maxNode = null;
 		int score = -1000000;
 		for (int i = 0; i < childArray.size(); i++) {
-			//System.out.println("get max score: " + childArray.get(i).getScore());
+			System.out.println("get max score: " + childArray.get(i).getScore());
 			if (childArray.get(i).getScore() > score) {
 				maxNode = childArray.get(i);
 				score = maxNode.getScore();

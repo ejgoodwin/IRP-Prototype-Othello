@@ -72,8 +72,8 @@ public class Board {
 	MCTS mcts = new MCTS();
 	
 	// Difficulty level data.
-	int controlLevel = 3;
-	int variableLevel = 3;
+	int controlLevel = 4;
+	int variableLevel = 4;
 	
 	// Previous winner.
 	char prevWinner;
@@ -81,7 +81,7 @@ public class Board {
 	
 	// Choice of algorithm.
 	// Choices: "minimax", "alpha-beta", "mcts".
-	String algorithmChoice = "alpha-beta";
+	String algorithmChoice = "mcts";
 	
 	public void startUI() {
 		// Build UI using Java Swing.
