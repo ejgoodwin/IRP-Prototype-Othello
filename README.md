@@ -10,6 +10,9 @@ A protoype for the game Othello using the following search algorithms to generat
 * JUnit
 * Swing
 
+## UI
+<img src="othello-readme.jpg" style="width:450px">
+
 ## Othello
 Othello is played on an 8x8 board with discs that are white on one side and black on the other. One player is assigned the colour white and the other player is assigned the colour black. The aim of the game is to have the highest number of discs showing your colour when all squares are taken. This is achieved by flipping your opponent’s discs to show your colour.
 
