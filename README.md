@@ -5,7 +5,7 @@ A protoype for the game Othello using the following search algorithms to generat
 * Alpha-beta pruning
 * Monte Carlo tree search
 
-## Tech stack
+## Tech
 * Java 
 * JUnit
 * Swing
